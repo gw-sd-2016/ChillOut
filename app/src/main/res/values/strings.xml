@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">SelfAware</string>
+    <string name="app_name">Listener</string>
     <string name="action_settings">Settings</string>
     <string name="sound_button">Listen</string>
-    <string name="title_activity_calendar">CalendarActivity</string>
+    <string name="title_activity_calendar">Calendar Events</string>
+    <string name="title_activity_event_details">Event Details</string>
 </resources>

@@ -1,6 +1,8 @@
 package com.example.grayapps.contextaware;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,12 +15,13 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.grayapps.contextaware.dummy.DummyContent;
@@ -78,14 +81,26 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        try {
+           // Activity activity = (Activity) context;
+            mListener = (OnFragmentInteractionListener) getActivity();
+
+        } catch (ClassCastException e) {
+            throw new ClassCastException(getActivity().toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+        if(null != mListener)
+            Log.d("Listener", "Is not null");
+        else
+        Log.d("Listener", "Is null");
         String from[] = new String[]{CalendarContract.Events.TITLE};
-        int to[] = {R.id.title};
+        int to[] = {R.id.eventTitle};
 
         getLoaderManager().initLoader(LOADER_EVENTS, getArguments(), this);
 
         mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         setListAdapter(mAdapter);
-
         setHasOptionsMenu(true);
     }
 
@@ -96,21 +111,26 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+
+        mListView.setAdapter(mAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
-
+        Log.d("IsClickable", "" + mListView.isClickable());
+        Log.d("CreatedView", "MADE IT");
         return view;
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        Log.d("OnAttach", "Is being called.");
+        super.onAttach(context);
         try {
+            Activity activity = (Activity) context;
             mListener = (OnFragmentInteractionListener) activity;
+
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
@@ -123,10 +143,28 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
 
     /**/@Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Log.d("ItemClickedID", "" + id);
+
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
+            Intent intent = new Intent(getContext(), EventDetailsActivity.class);
+            startActivity(intent);
             mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
+        }
+    }
+
+    /**/@Override
+    public void onListItemClick(ListView listView, View view, int position, long id) {
+        Log.d("ItemClickedID", "" + id);
+
+        if (null != mListener) {
+            // Notify the active callbacks interface (the activity, if the
+            // fragment is attached to one) that an item has been selected.
+            Intent intent = new Intent(getContext(), EventDetailsActivity.class);
+            intent.putExtra("eventId", id);
+            startActivity(intent);
+            //Listener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
         }
     }
 
@@ -172,19 +210,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         return true;
     }
 
-    // These are the Contacts rows that we will retrieve.
-    public static final String[] EVENT_PROJECTION = new String[] {
-            CalendarContract.Calendars._ID,                           // 0
-            CalendarContract.Calendars.ACCOUNT_NAME,                  // 1
-            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,         // 2
-            CalendarContract.Calendars.OWNER_ACCOUNT                  // 3
-    };
-
-    private static final int PROJECTION_ID_INDEX = 0;
-    private static final int PROJECTION_ACCOUNT_NAME_INDEX = 1;
-    private static final int PROJECTION_DISPLAY_NAME_INDEX = 2;
-    private static final int PROJECTION_OWNER_ACCOUNT_INDEX = 3;
-
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case (LOADER_EVENTS):
@@ -193,9 +218,11 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
                         CalendarContract.Events._ID,
                         CalendarContract.Events.TITLE
                 };
-                int calendarId = args == null ? -1 : args.getInt("calendarId");
 
-                return new CursorLoader(getActivity(), uri, projection, CalendarContract.Events.CALENDAR_ID + " = ?", new String[] {String.valueOf(calendarId)}, null);
+
+                int calendarId = args == null ? -1 : args.getInt("calendarId");
+                Log.d("CalendarId", "" + calendarId);
+                return new CursorLoader(getActivity(), uri, projection, CalendarContract.Events.ACCOUNT_NAME + " = ?", new String[] {"ajgray123@gmail.com"}, null);
         }
 
         return null;
