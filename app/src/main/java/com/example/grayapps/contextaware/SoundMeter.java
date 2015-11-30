@@ -82,9 +82,6 @@ public class SoundMeter {
     public double[] getAmplitudeEMA() {
         double amp = getAmplitude();
         Log.d("AMP", "" + amp);
-        //amp = 20 * (Math.log10(amp/0.0002));
-        //Log.d("TEST1", "" + (EMA_FILTER * db));
-        //Log.d("TEST2", "" + ((1.0 - EMA_FILTER) * mEMA));
         mEMA = (EMA_FILTER * amp) + ((1.0 - EMA_FILTER) * mEMA);
         Log.d("EMA", "" + mEMA);
         //Log.d("DB", "" + db);

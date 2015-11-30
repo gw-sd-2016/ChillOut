@@ -2,7 +2,6 @@ package com.example.grayapps.contextaware;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,11 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
-
-import com.example.grayapps.contextaware.dummy.DummyContent;
 
 /**
  * A fragment representing a list of Items.
@@ -35,7 +30,7 @@ import com.example.grayapps.contextaware.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class CalendarEventsListFragment extends ListFragment implements AbsListView.OnItemClickListener, SearchView.OnQueryTextListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class EventAttendeesListFragment extends ListFragment implements SearchView.OnQueryTextListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -62,8 +57,8 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     private SimpleCursorAdapter mAdapter;
 
     // TODO: Rename and change types of parameters
-    public static CalendarEventsListFragment newInstance(String param1, String param2) {
-        CalendarEventsListFragment fragment = new CalendarEventsListFragment();
+    public static EventAttendeesListFragment newInstance(String param1, String param2) {
+        EventAttendeesListFragment fragment = new EventAttendeesListFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -75,7 +70,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public CalendarEventsListFragment() {
+    public EventAttendeesListFragment() {
     }
 
     @Override
@@ -83,7 +78,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         super.onCreate(savedInstanceState);
 
         try {
-           // Activity activity = (Activity) context;
+            // Activity activity = (Activity) context;
             mListener = (OnFragmentInteractionListener) getActivity();
 
         } catch (ClassCastException e) {
@@ -93,13 +88,13 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         if(null != mListener)
             Log.d("Listener", "Is not null");
         else
-        Log.d("Listener", "Is null");
-        String from[] = new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
-        int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventDuration};
+            Log.d("Listener", "Is null");
+        String from[] = new String[]{CalendarContract.Attendees.ATTENDEE_NAME};
+        int to[] = {R.id.attendeeName};
 
         getLoaderManager().initLoader(LOADER_EVENTS, getArguments(), this);
 
-        mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, CursorAdapter.NO_SELECTION);
+        mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.eventattendee_list_item, null, from, to, CursorAdapter.NO_SELECTION);
         setListAdapter(mAdapter);
         setHasOptionsMenu(true);
     }
@@ -107,7 +102,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     /**/@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.calendar_event_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_event_attendees_list, container, false);
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
@@ -115,7 +110,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         mListView.setAdapter(mAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+      //  mListView.setOnItemClickListener(this);
         Log.d("IsClickable", "" + mListView.isClickable());
         Log.d("CreatedView", "MADE IT");
         return view;
@@ -139,37 +134,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    /**/@Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d("ItemClickedID", "WTF" + id);
-
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            TextView duration = (TextView) view.findViewById(R.id.eventDuration);
-            Log.d("Duration", String.valueOf(duration.getText()));
-            Intent intent = new Intent(getContext(), EventDetailsActivity.class);
-            startActivity(intent);
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-        }
-    }
-
-    /**/@Override
-    public void onListItemClick(ListView listView, View view, int position, long id) {
-        Log.d("ItemClickedID", "FTW" + id);
-
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            TextView duration = (TextView) view.findViewById(R.id.eventDuration);
-            String dur = duration.getText().toString();
-            Intent intent = new Intent(getContext(), EventDetailsActivity.class);
-            intent.putExtra("eventId", id);
-            startActivity(intent);
-            //Listener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-        }
     }
 
     /**
@@ -217,20 +181,19 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case (LOADER_EVENTS):
-                Uri uri = CalendarContract.Events.CONTENT_URI;
+                Uri uri = CalendarContract.Attendees.CONTENT_URI;
                 String[] projection = new String[] {
-                        CalendarContract.Events._ID,
-                        CalendarContract.Events.TITLE,
-                        CalendarContract.Events.EVENT_LOCATION,
-                        CalendarContract.Events.DTSTART,
-                        CalendarContract.Events.DTEND
+                        CalendarContract.Attendees._ID,
+                        CalendarContract.Attendees.EVENT_ID,
+                        CalendarContract.Attendees.ATTENDEE_NAME
                 };
 
-                int calendarId = args == null ? -1 : args.getInt("calendarId");
-                Log.d("CalendarId", "" + calendarId);
-                String query = CalendarContract.Events.ACCOUNT_NAME + " = ? AND " + CalendarContract.Events.DTEND + " < " + System.currentTimeMillis();
+                long eventId = getActivity().getPreferences(Context.MODE_PRIVATE).getLong("lastAccessedEventId", -1);
+                Log.d("EventId", "" + eventId);
 
-                return new CursorLoader(getActivity(), uri, projection, query, new String[] {"ajgray123@gmail.com"}, CalendarContract.Events.DTEND + " DESC");
+                String query = CalendarContract.Attendees.EVENT_ID + " = ?";
+
+                return new CursorLoader(getActivity(), uri, projection, query, new String[] {String.valueOf(eventId)}, CalendarContract.Attendees.ATTENDEE_NAME + " ASC");
 
         }
 
@@ -241,6 +204,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         // Swap the new cursor in.  (The framework will take care of closing the
         // old cursor once we return.)
 
+        Log.d("Attendee Count", "" + data.getCount());
         mAdapter.swapCursor(data);
     }
 

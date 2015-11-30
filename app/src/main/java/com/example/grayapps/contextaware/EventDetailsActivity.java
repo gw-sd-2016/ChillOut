@@ -1,6 +1,7 @@
 package com.example.grayapps.contextaware;
 
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -8,42 +9,27 @@ import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.TextView;
 
-public class EventDetailsActivity extends AppCompatActivity {
+public class EventDetailsActivity extends AppCompatActivity implements EventAttendeesListFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        long eventId = getIntent().getLongExtra("eventId", -1);
+        editor.putLong("lastAccessedEventId", eventId);
+        editor.commit();
         setContentView(R.layout.activity_event_details);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-       /* FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
-        long eventId = getIntent().getLongExtra("eventId", -1);
         Uri uri = CalendarContract.Events.CONTENT_URI;
         String[] proj =
                 new String[]{
                         CalendarContract.Events.TITLE,
                         CalendarContract.Events.EVENT_LOCATION};
-        /*if (checkSelfPermission(Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
-        }*/
+
         Cursor cursor = getContentResolver().query(uri, proj, CalendarContract.Events._ID + " = ?", new String[]{String.valueOf(eventId)}, null);
         if (cursor.moveToFirst()) {
             // read event data
@@ -54,6 +40,12 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventLocation.setText(cursor.getString(1));
         }
 
+    }
+
+    @Override
+    public void onFragmentInteraction(String id)
+    {
+        Log.d("FragmentID", id);
     }
 
 }
