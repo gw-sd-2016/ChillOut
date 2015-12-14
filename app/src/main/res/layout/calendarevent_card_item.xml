@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="@dimen/activity_horizontal_margin">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/eventTitle"
+        android:focusable="false"
+        android:text="Title"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
+        android:textIsSelectable="false"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp"/>
+    <TextView
+        android:id="@+id/eventLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location"
+        android:focusable="false"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
+        android:textIsSelectable="false"
+        android:layout_below="@+id/eventTitle"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp"/>
+    <TableRow
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/eventLocation">
+        <TextView
+            android:id="@+id/eventStartTime"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="Start - "
+            android:focusable="false"
+            android:clickable="false"
+            android:focusableInTouchMode="false"
+            android:textIsSelectable="false"
+            android:layout_alignParentBottom="false"
+            android:textColor="@color/textAccent"
+            android:fontFamily="sans-serif-light"
+            android:textSize="16sp"/>
+        <TextView
+            android:id="@+id/eventEndTime"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="End"
+            android:focusable="false"
+            android:clickable="false"
+            android:focusableInTouchMode="false"
+            android:textIsSelectable="false"
+            android:layout_alignParentBottom="false"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/textAccent"
+            android:fontFamily="sans-serif-light"
+            android:textSize="16sp"
+            android:layout_toRightOf="@+id/eventDuration"
+            android:layout_below="@+id/eventLocation" />
+    </TableRow>
+
+</RelativeLayout>

@@ -13,8 +13,6 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.widget.SearchView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +24,9 @@ import android.widget.TextView;
 
 import com.example.grayapps.contextaware.dummy.DummyContent;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * A fragment representing a list of Items.
  * <p/>
@@ -35,7 +36,7 @@ import com.example.grayapps.contextaware.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class CalendarEventsListFragment extends ListFragment implements AbsListView.OnItemClickListener, SearchView.OnQueryTextListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class CalendarEventsListFragment extends ListFragment implements AbsListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -43,6 +44,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     private static final String ARG_PARAM2 = "param2";
     private String mCurFilter;
     private static final int LOADER_EVENTS = 1;
+    private static SimpleDateFormat msimpleDateFormat;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -83,7 +85,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         super.onCreate(savedInstanceState);
 
         try {
-           // Activity activity = (Activity) context;
             mListener = (OnFragmentInteractionListener) getActivity();
 
         } catch (ClassCastException e) {
@@ -94,17 +95,40 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             Log.d("Listener", "Is not null");
         else
         Log.d("Listener", "Is null");
+        msimpleDateFormat = new SimpleDateFormat("h:mma");
         String from[] = new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
-        int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventDuration};
+        int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventStartTime, R.id.eventEndTime};
 
         getLoaderManager().initLoader(LOADER_EVENTS, getArguments(), this);
 
         mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, CursorAdapter.NO_SELECTION);
+        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                if(columnIndex == 3)
+                {
+                    long startTime =  cursor.getLong(columnIndex);
+                    String timeAsString = msimpleDateFormat.format(new Date(startTime));
+                    TextView tView = (TextView) view;
+                    tView.setText(timeAsString + " - ");
+                    return true;
+                }
+                if(columnIndex == 4)
+                {
+                    long endTime =  cursor.getLong(columnIndex);
+                    String timeAsString = msimpleDateFormat.format(new Date(endTime));
+                    TextView tView = (TextView) view;
+                    tView.setText(timeAsString);
+                    return true;
+                }
+                return false;
+            }
+        });
         setListAdapter(mAdapter);
         setHasOptionsMenu(true);
     }
 
-    /**/@Override
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.calendar_event_list, container, false);
@@ -146,9 +170,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         Log.d("ItemClickedID", "WTF" + id);
 
         if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            TextView duration = (TextView) view.findViewById(R.id.eventDuration);
+            TextView duration = (TextView) view.findViewById(R.id.eventStartTime);
             Log.d("Duration", String.valueOf(duration.getText()));
             Intent intent = new Intent(getContext(), EventDetailsActivity.class);
             startActivity(intent);
@@ -163,7 +185,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            TextView duration = (TextView) view.findViewById(R.id.eventDuration);
+            TextView duration = (TextView) view.findViewById(R.id.eventStartTime);
             String dur = duration.getText().toString();
             Intent intent = new Intent(getContext(), EventDetailsActivity.class);
             intent.putExtra("eventId", id);
@@ -200,20 +222,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         public void onFragmentInteraction(String id);
     }
 
-    public boolean onQueryTextChange(String newText) {
-        // Called when the action bar search text has changed.  Update
-        // the search filter, and restart the loader to do a new query
-        // with this filter.
-        mCurFilter = !TextUtils.isEmpty(newText) ? newText : null;
-        getLoaderManager().restartLoader(0, null, this);
-        return true;
-    }
-
-    @Override public boolean onQueryTextSubmit(String query) {
-        // Don't care about this.
-        return true;
-    }
-
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             case (LOADER_EVENTS):
@@ -229,7 +237,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
                 int calendarId = args == null ? -1 : args.getInt("calendarId");
                 Log.d("CalendarId", "" + calendarId);
                 String query = CalendarContract.Events.ACCOUNT_NAME + " = ? AND " + CalendarContract.Events.DTEND + " < " + System.currentTimeMillis();
-
                 return new CursorLoader(getActivity(), uri, projection, query, new String[] {"ajgray123@gmail.com"}, CalendarContract.Events.DTEND + " DESC");
 
         }

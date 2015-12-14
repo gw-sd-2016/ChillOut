@@ -1,24 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_event_details"
-    tools:context="com.example.grayapps.contextaware.EventDetailsActivity">
+    tools:context="com.example.grayapps.contextaware.EventDetailsActivity"
+    android:background="@color/colorPrimaryDark">
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="300dp"
+        android:id="@+id/container" />
 
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        card_view:cardElevation="8dp"
+        card_view:cardCornerRadius="@dimen/card_radius"
+        android:layout_marginLeft="@dimen/card_margin"
+        android:layout_marginEnd="@dimen/card_margin"
+        android:layout_marginStart="@dimen/card_margin"
+        android:layout_marginRight="@dimen/card_margin"
+        android:layout_below="@+id/container"
+        card_view:cardBackgroundColor="@color/colorPrimary">
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_margin="@dimen/activity_horizontal_margin">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/eventTitle"
-        android:layout_alignParentTop="true"
+        android:id="@+id/eventTime"
         android:layout_centerHorizontal="true"
-        android:textSize="20sp"
-        android:layout_marginBottom="10dp" />
+        android:textSize="22sp"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/textPrimary"
+        android:fontFamily="sans-serif-light"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -26,27 +47,39 @@
         android:text="Location:"
         android:layout_alignParentLeft="true"
         android:id="@+id/locationText"
-        android:layout_below="@+id/eventTitle" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_horizontal_margin"
-        android:layout_below="@+id/locationText"
-        android:id="@+id/eventLocation"/>
+        android:layout_below="@+id/eventTitle"
+        android:textColor="@color/textAccent"
+        android:fontFamily="sans-serif-light"
+        android:textSize="12sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_below="@+id/locationText"
+        android:id="@+id/eventLocation"
+        android:textColor="@color/textPrimary"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-light"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="Who's Coming:"
         android:id="@+id/attendeesText"
-        android:layout_below="@id/eventLocation"/>
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/eventLocation"
+        android:textColor="@color/textAccent"
+        android:textSize="12sp"
+        android:fontFamily="sans-serif-light"/>
 
     <fragment
         android:name="com.example.grayapps.contextaware.EventAttendeesListFragment"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/attendeesFragment"
-        android:layout_below="@id/attendeesText"/>
+        android:layout_below="@id/attendeesText" />
 
+    </RelativeLayout>
+    </android.support.v7.widget.CardView>
 </RelativeLayout>

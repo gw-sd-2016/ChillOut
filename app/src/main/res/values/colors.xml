@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#455b65</color>
+    <color name="colorPrimaryDark">#1b1b1b</color>
+    <color name="colorAccent">#1b1b1b</color>
+    <color name="behindToolbar">#0d0d0d</color>
+    <color name="colorBar">#21BEDB</color>
+    <color name="colorStress">#BB6A7F</color>
+    <color name="colorNoise">#117E93</color>
+    <color name="colorMove">#DCB869</color>
+    <color name="textPrimary">#fffdfdfd</color>
+    <color name="textAccent">#a0fdfdfd</color>
 </resources>

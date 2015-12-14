@@ -11,16 +11,17 @@
         android:layout_gravity="center"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        card_view:cardCornerRadius="0dp"
-        card_view:cardElevation="8dp"
-        android:layout_marginBottom="@dimen/activity_horizontal_margin"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        card_view:cardCornerRadius="@dimen/card_radius"
+        card_view:cardElevation="6dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="@dimen/card_margin"
+        android:layout_marginStart="@dimen/card_margin"
+        android:layout_marginRight="@dimen/card_margin"
+        android:layout_marginEnd="@dimen/card_margin"
         android:descendantFocusability="blocksDescendants"
         android:textIsSelectable="false"
-        android:layout_marginTop="2dp">
+        android:layout_marginTop="5dp"
+        card_view:cardBackgroundColor="@color/colorPrimary">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -33,7 +34,9 @@
             android:text="Title"
             android:clickable="false"
             android:focusableInTouchMode="false"
-            android:textIsSelectable="false"/>
+            android:textIsSelectable="false"
+            android:textColor="@color/textPrimary"
+            android:textSize="16sp"/>
         <TextView
             android:id="@+id/eventLocation"
             android:layout_width="wrap_content"
@@ -43,66 +46,44 @@
             android:clickable="false"
             android:focusableInTouchMode="false"
             android:textIsSelectable="false"
-            android:layout_below="@+id/eventTitle" />
+            android:layout_below="@+id/eventTitle"
+            android:textColor="@color/textPrimary"
+            android:textSize="16sp"/>
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/eventLocation">
         <TextView
-            android:id="@+id/eventDuration"
+            android:id="@+id/eventStartTime"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:text="Duration"
+            android:text="Start - "
             android:focusable="false"
             android:clickable="false"
             android:focusableInTouchMode="false"
             android:textIsSelectable="false"
             android:layout_alignParentBottom="false"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@+id/eventLocation" />
-        </RelativeLayout>
-    </android.support.v7.widget.CardView>
-    <!--android.support.v7.widget.CardView
-        xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/card_view2"
-        android:layout_gravity="center"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        card_view:cardCornerRadius="2dp"
-        card_view:cardElevation="10dp">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:textColor="@color/textAccent"
+            android:fontFamily="sans-serif-light"
+            android:textSize="16sp"/>
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/eventTitle2"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:focusable="false"
-                android:text="Title"
-                android:clickable="false"
-                android:focusableInTouchMode="false"
-                android:textIsSelectable="false"/>
-            <TextView
-                android:id="@+id/eventLocation2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Location"
-                android:focusable="false"
-                android:clickable="false"
-                android:focusableInTouchMode="false"
-                android:textIsSelectable="false"
-                android:layout_below="@+id/eventTitle2" />
-            <TextView
-                android:id="@+id/eventDuration2"
+                android:id="@+id/eventEndTime"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Duration"
+                android:text="End"
                 android:focusable="false"
                 android:clickable="false"
                 android:focusableInTouchMode="false"
                 android:textIsSelectable="false"
                 android:layout_alignParentBottom="false"
                 android:layout_centerHorizontal="true"
-                android:layout_below="@+id/eventLocation2"
-                android:layout_marginBottom="@dimen/activity_vertical_margin"/>
+                android:textColor="@color/textAccent"
+                android:fontFamily="sans-serif-light"
+                android:textSize="16sp"
+                android:layout_toRightOf="@+id/eventDuration"
+                android:layout_below="@+id/eventLocation" />
+            </TableRow>
         </RelativeLayout>
-    </android.support.v7.widget.CardView-->
-
+    </android.support.v7.widget.CardView>
 </LinearLayout>

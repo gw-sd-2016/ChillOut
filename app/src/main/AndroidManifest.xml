@@ -35,7 +35,7 @@
             android:name=".EventDetailsActivity"
             android:label="@string/title_activity_event_details"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:enterFadeDuration="150"
+    android:exitFadeDuration="150" >
+
+    <item
+        android:drawable="@drawable/card_on_press"
+        android:state_pressed="true"/>
+    <item android:drawable="@drawable/card_on_press"
+        android:state_focused="true"
+        android:state_enabled="true" />
+    <item android:drawable="@drawable/card_default"
+        android:state_enabled="true" />
+    <item android:drawable="@drawable/card_on_press"
+        android:state_enabled="false" />
+
+</selector>
