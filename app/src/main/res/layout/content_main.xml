@@ -12,13 +12,22 @@
     android:clickable="true"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="250dp"
+        android:id="@+id/container"
+        android:layout_alignParentTop="true">
+
+    </RelativeLayout>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/sound_button"
-        android:layout_centerInParent="true"
         android:onClick="startListening"
-        android:id="@+id/button" />
+        android:id="@+id/button"
+        android:layout_above="@+id/soundReading"
+        android:layout_alignParentStart="true" />
 
     <!--TextView
         android:layout_width="fill_parent"
@@ -44,10 +53,32 @@
         android:text="0"
         android:id="@+id/soundValue"
         android:layout_above="@+id/button"
+        android:layout_below="@+id/container"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="51dp"
-        android:textSize="34sp"
+        android:textSize="20sp"
         android:gravity="center_horizontal" />
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:id="@+id/soundReading"
+        android:textSize="34sp"
+        android:gravity="center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="41dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="cal"
+        android:id="@+id/goCal"
+        android:textAllCaps="false"
+        android:onClick="launchCalendar"
+        android:layout_above="@+id/soundReading"
+        android:layout_alignParentEnd="true" />
 
     <!--TextView
         android:layout_width="fill_parent"
@@ -132,14 +163,5 @@
         android:layout_alignBottom="@+id/frequency"
         android:layout_alignEnd="@+id/soundValue"
         android:onClick="setFrequency"/-->
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="cal"
-        android:id="@+id/goCal"
-        android:textAllCaps="false"
-        android:layout_alignParentEnd="true"
-        android:onClick="launchCalendar"/>
 
 </RelativeLayout>

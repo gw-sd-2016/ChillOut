@@ -7,7 +7,8 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_event_details"
     tools:context="com.example.grayapps.contextaware.EventDetailsActivity"
-    android:background="@color/colorPrimaryDark">
+    android:background="@color/colorPrimaryDark"
+    android:id="@+id/eventContent">
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="300dp"
@@ -18,14 +19,15 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        card_view:cardElevation="8dp"
+        card_view:cardElevation="0dp"
         card_view:cardCornerRadius="@dimen/card_radius"
         android:layout_marginLeft="@dimen/card_margin"
         android:layout_marginEnd="@dimen/card_margin"
         android:layout_marginStart="@dimen/card_margin"
         android:layout_marginRight="@dimen/card_margin"
         android:layout_below="@+id/container"
-        card_view:cardBackgroundColor="@color/colorPrimary">
+        android:background="@color/colorCardInfo"
+        card_view:cardBackgroundColor="@color/colorCardInfo">
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -50,7 +52,7 @@
         android:layout_below="@+id/eventTitle"
         android:textColor="@color/textAccent"
         android:fontFamily="sans-serif-light"
-        android:textSize="12sp"/>
+        android:textSize="16sp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -58,19 +60,18 @@
         android:layout_below="@+id/locationText"
         android:id="@+id/eventLocation"
         android:textColor="@color/textPrimary"
-        android:textSize="22sp"
-        android:fontFamily="sans-serif-light"/>
+        android:textSize="22sp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Who's Coming:"
+        android:text="Guests:"
         android:id="@+id/attendeesText"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/eventLocation"
         android:textColor="@color/textAccent"
-        android:textSize="12sp"
+        android:textSize="16sp"
         android:fontFamily="sans-serif-light"/>
 
     <fragment

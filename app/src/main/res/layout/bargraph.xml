@@ -17,7 +17,7 @@
         android:layout_marginBottom="@dimen/activity_horizontal_margin"
         card_view:cardElevation="8dp"
         card_view:cardCornerRadius="@dimen/card_radius"
-        card_view:cardBackgroundColor="@color/colorPrimary">
+        card_view:cardBackgroundColor="@color/textPrimary">
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="match_parent">
@@ -26,7 +26,8 @@
                 android:id="@+id/barchart1"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="@dimen/card_margin"/>
+                android:padding="@dimen/card_margin"
+                android:elevation="8dp" />
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>

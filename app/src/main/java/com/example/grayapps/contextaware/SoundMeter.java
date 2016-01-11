@@ -20,6 +20,7 @@ public class SoundMeter {
     private KalmanFilter mKF;
     private DenseMatrix64F mCurrentReadings;
     private DenseMatrix64F mIdentityMatrix;
+    private static double mRecentlyRead;
 
     public SoundMeter(){
         mEMA = 0.0002;
@@ -73,7 +74,10 @@ public class SoundMeter {
 
     public double getAmplitude() {
         if (mRecorder != null)
-            return (10 * mRecorder.getMaxAmplitude()/51805.5336);
+        {
+            mRecentlyRead = mRecorder.getMaxAmplitude();
+            return (10 * mRecentlyRead/51805.5336);
+        }
         else
             return 0;
 
@@ -91,6 +95,11 @@ public class SoundMeter {
         mKF.update(mCurrentReadings, mIdentityMatrix);
 
         return mKF.getState().getData();
+    }
+
+    public static int getRecentlyRead()
+    {
+        return (int) Math.round(mRecentlyRead);
     }
 }
 

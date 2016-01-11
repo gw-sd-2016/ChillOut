@@ -8,7 +8,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/attendeeName"
         android:textSize="22sp"
-        android:fontFamily="sans-serif-light"
         android:textColor="@color/textPrimary"/>
 
 

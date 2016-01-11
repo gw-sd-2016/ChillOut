@@ -205,6 +205,11 @@ public class EventAttendeesListFragment extends ListFragment implements SearchVi
         // old cursor once we return.)
 
         Log.d("Attendee Count", "" + data.getCount());
+        if(data.getCount() == 0)
+        {
+            TextView guestText = (TextView) getActivity().findViewById(R.id.attendeesText);
+            guestText.setVisibility(View.INVISIBLE);
+        }
         mAdapter.swapCursor(data);
     }
 

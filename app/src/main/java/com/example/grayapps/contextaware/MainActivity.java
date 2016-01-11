@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private int states[];
     private int[] changes;
     private ParseObject profile;
-    private int frequency = 2 ;
+    private int frequency = 30 ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, new BarFragment())
+                .commit();
     }
 
     public void onSaveInstanceState(Bundle outState) {
@@ -192,8 +195,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void setFrequency(View view)
     {
-      //  EditText freq = (EditText) findViewById(R.id.frequency);
-        //frequency = Integer.valueOf(freq.getText().toString());
     }
 
     public void updateTextView(int text_id, String toThis) {
@@ -205,7 +206,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void launchCalendar(View view)
     {
-        Intent intent = new Intent(this, CalendarActivity.class);
+
+        Intent intent = new Intent(this, StressDetectorActivity.class);
         startActivity(intent);
     }
 
@@ -224,8 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (states[i] < 1) {
                         states[i] = states[i];
-                       // Log.d("Changes", "LOUDER " + i);
-                    } //else
+                    }
                         changes[i] = 4;//louder
                         states[i]++;
                 } else if (ranges[0][i] < ranges[0][i + 1] && ranges[1][i] < ranges[1][i + 1]) {
@@ -233,8 +234,7 @@ public class MainActivity extends AppCompatActivity {
                     if (states[i] < 1) {
                         states[i] = states[i];
 
-                       // Log.d("Changes", "QUIETER " + i);
-                    }// else
+                    }
                         changes[i] = 1;//quieter
                         states[i]++;
                 } else
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("States1", states[0] + " " + states[1] + " " + states[2] + " " + states[3]);
             Log.d("Min1", "" + 100 * ranges[0][0]);
-            Log.d("Changes", "" + changes[0]);
+           //  Log.d("Changes", "" + changes[0]);
             Log.d("Max1", "" + 100 * ranges[1][0]);
             Log.d("Min2", "" + 100 * ranges[0][1]);
             Log.d("Max2", "" + 100 * ranges[1][1]);
@@ -271,38 +271,13 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                               @Override
                               public void run() {
-                                 /* updateTextView(R.id.avgMax, "1 -> Min: " + (int) Math.round(100 * ranges[0][0]) + " Max: " + (int) Math.round(100 * ranges[1][0]));
-                                  updateTextView(R.id.avgMin, "2 -> Min: " + (int) Math.round(100 * ranges[0][1]) + " Max: " + (int) Math.round(100 * ranges[1][1]));
-                                  updateTextView(R.id.percentUp, "3 -> Min: " + (int) Math.round(100 * ranges[0][2]) + " Max: " + (int) Math.round(100 * ranges[1][2]));
-                                  updateTextView(R.id.percentDown, "4 -> Min: " + (int) Math.round(100 * ranges[0][3]) + " Max: " + (int) Math.round(100 * ranges[1][3]));
-                                  updateTextView(R.id.soundValue, String.valueOf((int) Math.round(1000 * val[0])));
-                                  TextView upOne = (TextView) findViewById(R.id.upOne);
-                                  TextView upTwo = (TextView) findViewById(R.id.upTwo);
-                                  TextView upThree = (TextView) findViewById(R.id.upThree);
-                                  TextView upFour = (TextView) findViewById(R.id.upFour);
 
-                                  if (changes[0] < 0)
-                                      upOne.setTextColor(Color.RED);
-                                  else
-                                      upOne.setTextColor(Color.BLUE);
-                                  if (changes[1] < 0)
-                                      upTwo.setTextColor(Color.RED);
-                                  else
-                                      upTwo.setTextColor(Color.BLUE);
-                                  if (changes[2] < 0)
-                                      upThree.setTextColor(Color.RED);
-                                  else
-                                      upThree.setTextColor(Color.BLUE);
-                                  if (changes[3] < 0)
-                                      upFour.setTextColor(Color.RED);
-                                  else
-                                      upFour.setTextColor(Color.BLUE);
-
-                                  updateTextView(R.id.upOne, String.valueOf(states[0]));
-                                  updateTextView(R.id.upTwo, String.valueOf(states[1]));
-                                  updateTextView(R.id.upThree, String.valueOf(states[2]));
-                                  updateTextView(R.id.upFour, String.valueOf(states[3]));*/
-
+                                  String minutes = String.valueOf(states[0]/2);
+                                  if(states[0] % 2 != 0)
+                                  {
+                                      minutes += ".5";
+                                  }
+                                  BarFragment.setValues(ranges);
                                   switch(changes[0])
                                   {
                                       case 1:
@@ -315,11 +290,11 @@ public class MainActivity extends AppCompatActivity {
                                           updateTextView(R.id.soundValue, "Changed detected: louder");
                                           break;
                                       case 4:
-                                          updateTextView(R.id.soundValue, "It's been louder for " + (2 * states[0]) + " seconds");
+                                          updateTextView(R.id.soundValue, "It's been louder for " +  minutes + " minutes");
                                           break;
-
                                   }
 
+                                  updateTextView(R.id.soundReading, "" + SoundMeter.getRecentlyRead());
                               }
                           }
 

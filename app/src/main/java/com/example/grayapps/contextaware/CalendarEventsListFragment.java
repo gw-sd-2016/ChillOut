@@ -9,16 +9,19 @@ import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -44,7 +47,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     private static final String ARG_PARAM2 = "param2";
     private String mCurFilter;
     private static final int LOADER_EVENTS = 1;
-    private static SimpleDateFormat msimpleDateFormat;
+    private static SimpleDateFormat mSimpleDateFormat;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -61,7 +64,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private SimpleCursorAdapter mAdapter;
+    private EventsAdapter mAdapter;
 
     // TODO: Rename and change types of parameters
     public static CalendarEventsListFragment newInstance(String param1, String param2) {
@@ -91,39 +94,18 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             throw new ClassCastException(getActivity().toString()
                     + " must implement OnFragmentInteractionListener");
         }
-        if(null != mListener)
+        if (null != mListener)
             Log.d("Listener", "Is not null");
         else
-        Log.d("Listener", "Is null");
-        msimpleDateFormat = new SimpleDateFormat("h:mma");
+            Log.d("Listener", "Is null");
+
+        mSimpleDateFormat = new SimpleDateFormat("h:mma");
+
         String from[] = new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
         int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventStartTime, R.id.eventEndTime};
 
         getLoaderManager().initLoader(LOADER_EVENTS, getArguments(), this);
-
-        mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, CursorAdapter.NO_SELECTION);
-        mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-            @Override
-            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-                if(columnIndex == 3)
-                {
-                    long startTime =  cursor.getLong(columnIndex);
-                    String timeAsString = msimpleDateFormat.format(new Date(startTime));
-                    TextView tView = (TextView) view;
-                    tView.setText(timeAsString + " - ");
-                    return true;
-                }
-                if(columnIndex == 4)
-                {
-                    long endTime =  cursor.getLong(columnIndex);
-                    String timeAsString = msimpleDateFormat.format(new Date(endTime));
-                    TextView tView = (TextView) view;
-                    tView.setText(timeAsString);
-                    return true;
-                }
-                return false;
-            }
-        });
+        mAdapter = new EventsAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, getLayoutInflater(savedInstanceState));
         setListAdapter(mAdapter);
         setHasOptionsMenu(true);
     }
@@ -135,7 +117,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);
-
+        final Bundle tempBundle = savedInstanceState;
         mListView.setAdapter(mAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
@@ -165,7 +147,8 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         mListener = null;
     }
 
-    /**/@Override
+    /**/
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d("ItemClickedID", "WTF" + id);
 
@@ -178,7 +161,8 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         }
     }
 
-    /**/@Override
+    /**/
+    @Override
     public void onListItemClick(ListView listView, View view, int position, long id) {
         Log.d("ItemClickedID", "FTW" + id);
 
@@ -186,9 +170,10 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
             TextView duration = (TextView) view.findViewById(R.id.eventStartTime);
-            String dur = duration.getText().toString();
+//            String dur = duration.getText().toString();
             Intent intent = new Intent(getContext(), EventDetailsActivity.class);
             intent.putExtra("eventId", id);
+            intent.putExtra("position",position);
             startActivity(intent);
             //Listener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
         }
@@ -226,7 +211,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         switch (id) {
             case (LOADER_EVENTS):
                 Uri uri = CalendarContract.Events.CONTENT_URI;
-                String[] projection = new String[] {
+                String[] projection = new String[]{
                         CalendarContract.Events._ID,
                         CalendarContract.Events.TITLE,
                         CalendarContract.Events.EVENT_LOCATION,
@@ -237,7 +222,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
                 int calendarId = args == null ? -1 : args.getInt("calendarId");
                 Log.d("CalendarId", "" + calendarId);
                 String query = CalendarContract.Events.ACCOUNT_NAME + " = ? AND " + CalendarContract.Events.DTEND + " < " + System.currentTimeMillis();
-                return new CursorLoader(getActivity(), uri, projection, query, new String[] {"ajgray123@gmail.com"}, CalendarContract.Events.DTEND + " DESC");
+                return new CursorLoader(getActivity(), uri, projection, query, new String[]{"ajgray123@gmail.com"}, CalendarContract.Events.DTEND + " DESC");
 
         }
 
@@ -258,4 +243,107 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         mAdapter.swapCursor(null);
     }
 
+    private class EventsAdapter extends SimpleCursorAdapter {
+        private  int mLayoutId;
+        private  CardView mCurrentCard;
+        private  LinearLayout mInnerCardLayout;
+        private  String mRecentDate;
+        private  final SimpleDateFormat mDateComparer = new SimpleDateFormat("MM/dd/yy");
+        private LayoutInflater mInflater;
+
+        public EventsAdapter(Context context, int layout, Cursor cursor, String[] from,
+                                int[] to, LayoutInflater inflater) {
+            super(getActivity(), layout, cursor, from, to, CursorAdapter.NO_SELECTION);
+            mInflater = inflater;
+            mRecentDate = mDateComparer.format(new Date(System.currentTimeMillis()));
+            mCurrentCard = new CardView(inflater.getContext(), null, 0);
+            mInnerCardLayout = new LinearLayout(inflater.getContext());
+            mLayoutId = layout;
+            setDropDownViewResource(R.layout.calendarevent_card_item);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent)
+        {
+            return mInflater.inflate(R.layout.calendarevent_list_item, parent, false);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent)
+        {
+            View rowView = super.getView(position,convertView, parent);
+            CardView card = (CardView) rowView.findViewById(R.id.cardView);
+            if(position % 4 == 0)
+                card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
+            else if(position % 3 == 0)
+            {
+                card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
+            }
+            else if(position % 7 == 0)
+            {
+                card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAnxious));
+            }
+            else
+            {
+                card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNeutral));
+            }
+
+            return rowView;
+        }
+
+        @Override
+        public void bindView(View rowView, Context context, Cursor cursor) {
+
+
+            long currentDateTime = cursor.getLong(4);
+            String dateString = mDateComparer.format(new Date(currentDateTime));
+
+            TextView date = (TextView) rowView.findViewById(R.id.eventDate);
+            date.setText(dateString);
+
+            TextView eventTitle = (TextView) rowView.findViewById(R.id.eventTitle);
+            TextView eventLocation = (TextView) rowView.findViewById(R.id.eventLocation);
+            TextView eventStartTime = (TextView) rowView.findViewById(R.id.eventStartTime);
+            TextView eventEndTime = (TextView) rowView.findViewById(R.id.eventEndTime);
+
+            eventTitle.setText(cursor.getString(1));
+            eventLocation.setText(cursor.getString(2));
+            String timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(3)));
+            eventStartTime.setText(timeAsString + " - ");
+            timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(4)));
+            eventEndTime.setText(timeAsString);
+        }
+
+        public  void setRecentDate(String recentDate)
+        {
+            mRecentDate = recentDate;
+        }
+
+        public  String getRecentDate()
+        {
+            return mRecentDate;
+        }
+
+        public CardView getCurrentCard()
+        {
+            return mCurrentCard;
+        }
+
+        public  void setCurrentCard(CardView cardView)
+        {
+            mCurrentCard = cardView;
+        }
+
+        public LinearLayout getInnerCardLayout()
+        {
+
+            return mInnerCardLayout;
+        }
+        public void setInnerCardLayout(LinearLayout view)
+        {
+            mInnerCardLayout = view;
+        }
+    }
 }
+
+
