@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,15 +15,14 @@ import com.microsoft.band.BandException;
 import com.microsoft.band.BandInfo;
 import com.microsoft.band.ConnectionState;
 import com.microsoft.band.UserConsent;
-import com.microsoft.band.sensors.BandGsrEvent;
-import com.microsoft.band.sensors.BandGsrEventListener;
+import com.microsoft.band.sensors.BandAccelerometerEvent;
+import com.microsoft.band.sensors.BandAccelerometerEventListener;
 import com.microsoft.band.sensors.BandHeartRateEvent;
 import com.microsoft.band.sensors.BandHeartRateEventListener;
 import com.microsoft.band.sensors.BandRRIntervalEvent;
 import com.microsoft.band.sensors.BandRRIntervalEventListener;
-import com.microsoft.band.sensors.BandSkinTemperatureEvent;
-import com.microsoft.band.sensors.BandSkinTemperatureEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
+import com.microsoft.band.sensors.SampleRate;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -39,6 +37,8 @@ public class StressDetectorActivity extends AppCompatActivity {
     private TextView txtStatus;
     private static double[] mLastRead;
     private static int mPos;
+    private static int mCounter;
+    private static boolean mBreathDetected;
     private static DenseMatrix64F mIdentityMatrix;
     private static KalmanFilter mKF;
     private static DenseMatrix64F mCurrentReadings;
@@ -57,38 +57,52 @@ public class StressDetectorActivity extends AppCompatActivity {
     private static String mGSR = "";
     private static String mRRInt = "";
     private static String mHRInterval = "";
+    private static String mAccl = "";
+    private static double mDips;
+    private static double mValids;
     private static int mLineNum;
     private static int mPrevLine;
     private static boolean mWasTrue;
     private static double mCalcHR;
     private static boolean mIsStressed;
     private static long mStressedTime;
-
+    private static double[] prevXYZ;
+    private static double[] prevRR;
+    private static double mAcclReading;
+    private static int mLoss;
+    private static long mLastMove;
+    private static long mLastMinute;
+    private static int mStressMinutes;
     private BandRRIntervalEventListener mRRIntervalEventListener = new BandRRIntervalEventListener() {
         @Override
         public void onBandRRIntervalChanged(final BandRRIntervalEvent event) {
             if (event != null) {
                 double temp = event.getInterval();
 
-                
-                String val = String.format("%.3f", 10 * event.getInterval());
-                mHRInterval = val;
-               // mRRInt = val;
-               // mSum += event.getInterval();
-               // mNumPos++;
+
+                //String val = String.format("%.3f", 10 * event.getInterval());
+                //mHRInterval = val;
+                // mRRInt = val;
+                // mSum += event.getInterval();
+                // mNumPos++;
 
                 //if (mNumPos == mNumtoRead) {
-                   // double temp = event.getInterval();// mSum / mNumtoRead;
-                 //   mNumPos = 0;
-                 //   mSum = 0;
+                // double temp = event.getInterval();// mSum / mNumtoRead;
+                //   mNumPos = 0;
+                //   mSum = 0;
+                mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
+                mPrevReading = temp;
+                for (int i = 0; i < 3; i++)
+                {
 
-                    mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
-                    mPrevReading = temp;
-                    mKF.predict();
-                    mKF.update(mCurrentReadings, mIdentityMatrix);
+                mKF.predict();
+                mKF.update(mCurrentReadings, mIdentityMatrix);
+                }
                  //   mMean *= mPrevCount;
                  //   mMean -= mLastRead[mPos];
                    temp = mKF.getState().getData()[0];
+                String val = String.format("%.3f", 200 * temp);
+                mHRInterval = val;
                   mCalcHR = (60.0/temp);
                  //   mMean += mLastRead[mPos];
                  //   mMean /= mPrevCount;
@@ -114,13 +128,13 @@ public class StressDetectorActivity extends AppCompatActivity {
                // Log.d("point2", String.format("%.3f",mKF2.getState().getData()[1]));
                   //  Log.d("STD2", String.format("%.3f",std));
                   //  val = String.format("%.3f", std * 1000);
-                 //   mReadings = mStressDetector.update(2000 * std);
+                    mReadings = mStressDetector.update(temp);
                  //   mRRInt = String.format("%.3f", 2000 * std);
                  //   Log.d("RRInt", String.format("%.3f", mLastRead[mPos]));
                    // Log.d("Min1", "" + 100 * mReadings[0][0]);
                     //  Log.d("Changes", "" + changes[0]);
                   //  Log.d("Max1", "" + 100 * mReadings[1][0]);
-                  //  Log.d("Min2", "" + 100 * mReadings[0][1]);
+                   // Log.d("Min2", "" + 100 * mReadings[0][1]);
                   //  Log.d("Max2", "" + 100 * mReadings[1][1]);
                   //  Log.d("Min3", "" + 100 * mReadings[0][2]);
                   //  Log.d("Max3", "" + 100 * mReadings[1][2]);
@@ -128,21 +142,59 @@ public class StressDetectorActivity extends AppCompatActivity {
                   //  Log.d("Max4", "" + 100 * mReadings[1][3]);
                   //  Log.d("Min5", "" + 100 * mReadings[0][4]);
                  // Log.d("Max5", "" + 100 * mReadings[1][4]);
+                prevRR[0] = prevRR[1];
+                prevRR[1] = prevRR[2];
+                prevRR[2] = prevRR[3];
+                prevRR[3] = 200 * temp;
+                long currentTime = System.currentTimeMillis();
+                boolean isDip = (prevRR[2]/prevRR[3] < 0.975 && prevRR[2] < prevRR[1]) || (prevRR[2]/prevRR[1] < 0.975 && prevRR[2] < prevRR[3]);
+                isDip &= prevRR[1] < prevRR[0];
+                boolean isValid = currentTime - mLastMove > 2000;
+                isValid &= mLoss < 17;
+
+                //Log.d("breath", String.format("%.2f, %.2f, %.2f => %b => %.2f ---- %d %.2f", prevRR[0], prevRR[1], prevRR[2], breath, 200 * mReadings[0][1], mLoss, mAcclReading));
+                //Log.d("breath", String.format("%.2f, %.2f, %.2f => %b => %.2f ---- %d %s", prevRR[0], prevRR[1], prevRR[2], breath, 200 * mReadings[0][1], mLoss, acclString));
+                if(isValid)
+                {
+                    mValids++;
+                    if(isDip){
+                        mDips++;
+                        Log.d("dip", "detected, 0");
+                    }
+                }
                     //final String writeToScreen = val;
-                  /*  runOnUiThread(new Runnable() {
+                  /**/  runOnUiThread(new Runnable() {
                                       @Override
                                       public void run() {
                                           BarFragment.setValues(mReadings);
-                                          //txtStatus.setText(writeToScreen);
+
                                       }
                                   }
 
-                    );*/
+                    );
 
 
                    // mPos += 1;
                    // mPos %= mPrevCount;
                // }
+            }
+        }
+    };
+
+    private BandAccelerometerEventListener mAccelerometerEventListener = new BandAccelerometerEventListener() {
+        @Override
+        public void onBandAccelerometerChanged(final BandAccelerometerEvent event) {
+            if (event != null) {
+                mAcclReading = 100 * (Math.pow(event.getAccelerationX() - prevXYZ[0], 2) +
+                        Math.pow(event.getAccelerationY() - prevXYZ[1], 2) + Math.pow(event.getAccelerationZ() - prevXYZ[2], 2));
+                mAccl = (String.format("%.10f", mAcclReading));
+                prevXYZ[0] = event.getAccelerationX();
+                prevXYZ[1] = event.getAccelerationY();
+                prevXYZ[2] = event.getAccelerationZ();
+                if(mAcclReading > 0.01)
+                {
+                    mLastMove = System.currentTimeMillis();
+                }
             }
         }
     };
@@ -154,24 +206,22 @@ public class StressDetectorActivity extends AppCompatActivity {
                // Log.d("HeartRate",String.format("Heart Rate = %d beats per minute"
                //         + "Quality = %s", event.getHeartRate(), event.getQuality()));
                 int temp = event.getHeartRate();
-                Log.d("Readings", String.format("%d,%s,%s,%s,%s", temp, mRRInt, mHRInterval, mGSR, mTemp));
+               // Log.d("Readings", String.format("%d,%s,%s,%s,%s", temp, mRRInt, mHRInterval, mGSR, mTemp));
 
 
                   mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(mCalcHR));
-                 //  mPrevReading = mCalcHR;
                    mKF2.predict();
                    mKF2.update(mCurrentReadings, mIdentityMatrix);
-                 //  mMean *= mPrevCount;
-                 //   mMean -= mLastRead[mPos];
-                 //  mLastRead[mPos] = mKF.getState().getData()[0];
                 int tempHR = (int) Math.round(mKF2.getState().getData()[0]);
 
                 double loss = Math.pow(tempHR - temp, 2);
-                if(loss > 100)
-                    loss = 100;
-                else if (loss > 64)
+                mLoss = (int) Math.round(loss);
+                if(loss > 9)
                 {
-                    tempHR = (int)Math.round((tempHR + temp)/2.0);
+                    mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
+                    //  mPrevReading = mCalcHR;
+                    mKF2.predict();
+                    mKF2.update(mCurrentReadings, mIdentityMatrix);
                 }
 
                 mSum -= mLastRead[mPos];
@@ -179,23 +229,19 @@ public class StressDetectorActivity extends AppCompatActivity {
                 mSum += loss;
 
                 double acrcy = mSum / Math.pow(100,2);
-                Log.d("Accuracy", String.format("%.3f %d %d %.3f", acrcy, tempHR, temp, loss));
-                if(acrcy < 1/3.0)
+                //Log.d("Accuracy", String.format("%.3f %d %d %.3f %s %s %s", acrcy*100, tempHR, temp, loss, mGSR, mTemp, mAccl));
+                //Log.d("Accuracy", String.format("%.3f %d %d %.3f %s %s", acrcy*100, tempHR, temp, loss, mHRInterval, mAccl));
+                long currentTime = System.currentTimeMillis();
+                Log.d("level", String.format("%.2f, %d", (mValids/mDips), temp));
+                if(currentTime - mLastMinute > 60000)
                 {
-                    if(!mIsStressed)
-                    {
-                        mIsStressed = true;
-                        mStressedTime = System.currentTimeMillis();
-                    }
-                    String time = DateUtils.formatElapsedTime((System.currentTimeMillis() - mStressedTime)/1000);
-                    appendToUI("Stressed for " + time);
-                    Log.d("StressStatus", "Stressed for " + time);
-                }
-                else
-                {
-                    mIsStressed = false;
-                    appendToUI("Not Stressed");
-                    Log.d("StressStatus", "Not Stressed");
+                    if((mValids/mDips) / (temp / 60.0) < 8)
+                        mStressMinutes++;
+                    mLastMinute = currentTime;
+                   // mValids = 0;
+                   // mDips = 0;
+
+                    appendToUI("" + mStressMinutes);
                 }
 
                 mPos++;
@@ -207,7 +253,7 @@ public class StressDetectorActivity extends AppCompatActivity {
         }
     };
 
-    private BandSkinTemperatureEventListener mSkinTemperatureEventListener = new BandSkinTemperatureEventListener() {
+   /* private BandSkinTemperatureEventListener mSkinTemperatureEventListener = new BandSkinTemperatureEventListener() {
         @Override
         public void onBandSkinTemperatureChanged(final BandSkinTemperatureEvent event) {
             if (event != null) {
@@ -227,7 +273,7 @@ public class StressDetectorActivity extends AppCompatActivity {
                // Log.d("GSR", val);
             }
         }
-    };
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -240,6 +286,8 @@ public class StressDetectorActivity extends AppCompatActivity {
         mStressDetector.start();
         mMean = 0;
         mPos = 0;
+        mDips = 0;
+        mValids = 0;
         mWasTrue = true;
         mNumPos = 0;
         mPrevReading = 0;
@@ -249,8 +297,17 @@ public class StressDetectorActivity extends AppCompatActivity {
         mLineNum = 1;
         mPrevLine = 0;
         mCalcHR = 0;
+        mCounter = 0;
+        mStressMinutes = 0;
+        mAcclReading = 0;
+        mLoss = 0;
+        mBreathDetected = false;
+        mLastMove = 0;
+        mLastMinute = 0;
         mIsStressed = false;
         mLastRead = new double[mPrevCount];
+        prevXYZ = new double[3];
+        prevRR = new double[4];
         txtStatus = (TextView) findViewById(R.id.txtStatus);
         btnStart = (Button) findViewById(R.id.listening);
         btnStart.setOnClickListener(new View.OnClickListener() {
@@ -316,9 +373,10 @@ public class StressDetectorActivity extends AppCompatActivity {
                     if (hardwareVersion >= 20) {
                         if (client.getSensorManager().getCurrentHeartRateConsent() == UserConsent.GRANTED) {
                             client.getSensorManager().registerRRIntervalEventListener(mRRIntervalEventListener);
-                            client.getSensorManager().registerGsrEventListener(mGsrEventListener);
-                            client.getSensorManager().registerSkinTemperatureEventListener(mSkinTemperatureEventListener);
+                            //client.getSensorManager().registerGsrEventListener(mGsrEventListener);
+                            //client.getSensorManager().registerSkinTemperatureEventListener(mSkinTemperatureEventListener);
                             client.getSensorManager().registerHeartRateEventListener(mHeartRateEventListener);
+                            client.getSensorManager().registerAccelerometerEventListener(mAccelerometerEventListener, SampleRate.MS128);
                         } else {
                             appendToUI("You have not given this application consent to access heart rate data yet."
                                     + " Please press the Heart Rate Consent button.\n");
