@@ -45,11 +45,13 @@ public class BarGraphFragment extends Fragment {
 
 
     /** First chart */
-    private BarChartView mChartOne;
+    private static BarChartView mChartOne;
     private ImageButton mPlayOne;
     private boolean mUpdateOne;
     private final String[] mLabelsOne= {"Stress", "Noise", "Movement"};
     private float [][] mValuesOne = {{5.0f, 7.5f, 5.5f}};
+    private static float[] mNewValues = new float[3];
+    private static float mMax;
     private int mPos;
     private String mStressColor = "#5e4072";
 
@@ -61,6 +63,8 @@ public class BarGraphFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if(getActivity().getIntent().hasExtra("position"))
+        {
         mPos = getActivity().getIntent().getExtras().getInt("position",-1);
         if(mPos % 4 == 0)//stressed
         {
@@ -78,6 +82,7 @@ public class BarGraphFragment extends Fragment {
             mStressColor = "#3ac298";
         }
         this.setHasOptionsMenu(true);
+        }
     }
 
 
@@ -132,7 +137,7 @@ public class BarGraphFragment extends Fragment {
      * @param chart   Chart view
      * @param btn    Play button
      */
-    private void updateChart(final int tag, final ChartView chart, ImageButton btn){
+    private static void updateChart(final int tag, final ChartView chart, ImageButton btn){
 
        // dismissPlay(btn);
 
@@ -189,7 +194,7 @@ public class BarGraphFragment extends Fragment {
         Runnable chartOneAction = new Runnable() {
             @Override
             public void run() {
-               // showTooltipOne();
+                //showTooltipOne();
                 auxAction.run();
             }
         };
@@ -200,12 +205,12 @@ public class BarGraphFragment extends Fragment {
         ;
     }
 
-    public void updateOne(ChartView chart){
+    public static void updateOne(ChartView chart){
 
-        dismissTooltipOne();
-        float [][]newValues = {{8.5f, 6.5f, 4.5f, 3.5f, 9f}, {5.5f, 3.0f, 3.0f, 2.5f, 7.5f}};
-        chart.updateValues(0, newValues[0]);
-        chart.updateValues(1, newValues[1]);
+       //dismissTooltipOne();
+        ///float[] newValues = //{{8.5f, 6.5f, 4.5f, 3.5f, 9f}, {5.5f, 3.0f, 3.0f, 2.5f, 7.5f}};
+        chart.updateValues(0, mNewValues);
+        //chart.updateValues(1, newValues[1]);
         chart.notifyDataUpdate();
     }
 
@@ -229,7 +234,7 @@ public class BarGraphFragment extends Fragment {
             for (int j = 0; j < areas.get(i).size(); j++) {
 
                 Tooltip tooltip = new Tooltip(getActivity(), R.layout.barchart_one_tooltip, R.id.value);
-                tooltip.prepare(areas.get(i).get(j), mValuesOne[i][j]);
+                tooltip.prepare(areas.get(i).get(j), mNewValues[i]);
 
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                     tooltip.setEnterAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 1));
@@ -240,9 +245,17 @@ public class BarGraphFragment extends Fragment {
         }
 
     }
+    public static void setValues(double[] values)
+    {
+        mMax = 0;
+        for(int i = 0; i < values.length; i++)
+        {
+            mNewValues[i] = Float.valueOf(String.valueOf(10 * values[i]));
+        }
+        updateChart(0, mChartOne, null);
+    }
 
-
-    private void dismissTooltipOne(){
+    private static void dismissTooltipOne(){
         mChartOne.dismissAllTooltips();
     }
 

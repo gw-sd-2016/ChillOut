@@ -61,11 +61,13 @@ public class StressDetectorActivity extends AppCompatActivity {
     private static double mDips;
     private static double mValids;
     private static int mLineNum;
+    private static int mMinutes;
     private static int mPrevLine;
     private static boolean mWasTrue;
     private static double mCalcHR;
     private static boolean mIsStressed;
     private static long mStressedTime;
+    private static int mRPM;
     private static double[] prevXYZ;
     private static double[] prevRR;
     private static double mAcclReading;
@@ -73,13 +75,14 @@ public class StressDetectorActivity extends AppCompatActivity {
     private static long mLastMove;
     private static long mLastMinute;
     private static int mStressMinutes;
+    private static boolean mDipping;
+    private static double mStartDip;
+    private static double mSumAverage;
     private BandRRIntervalEventListener mRRIntervalEventListener = new BandRRIntervalEventListener() {
         @Override
         public void onBandRRIntervalChanged(final BandRRIntervalEvent event) {
             if (event != null) {
                 double temp = event.getInterval();
-
-
                 //String val = String.format("%.3f", 10 * event.getInterval());
                 //mHRInterval = val;
                 // mRRInt = val;
@@ -92,12 +95,12 @@ public class StressDetectorActivity extends AppCompatActivity {
                 //   mSum = 0;
                 mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
                 mPrevReading = temp;
-                for (int i = 0; i < 3; i++)
-                {
+                //for (int i = 0; i < 3; i++)
+                //{
 
                 mKF.predict();
                 mKF.update(mCurrentReadings, mIdentityMatrix);
-                }
+                //}
                  //   mMean *= mPrevCount;
                  //   mMean -= mLastRead[mPos];
                    temp = mKF.getState().getData()[0];
@@ -146,11 +149,41 @@ public class StressDetectorActivity extends AppCompatActivity {
                 prevRR[1] = prevRR[2];
                 prevRR[2] = prevRR[3];
                 prevRR[3] = 200 * temp;
+
+                boolean isDip = false; //(prevRR[2]/prevRR[3] < 0.975 && prevRR[2] < prevRR[1]) || (prevRR[2]/prevRR[1] < 0.975 && prevRR[2] < prevRR[3]);
+                if(!mDipping && prevRR[2] > prevRR[3])
+                {
+                    mDipping = true;
+                    mStartDip = prevRR[2];
+                    Log.d("FunDip", "Detected");
+                }
+                else if(mDipping && prevRR[2] < prevRR[3])
+                {
+                    //Log.d("FunDip", String.format("Incomplete: %.2f", mStartDip/prevRR[2]));
+                    if(mStartDip / prevRR[2] >= 1.05 && mStartDip / prevRR[2]  <= 2)
+                    {
+                        isDip = true;
+                        Log.d("FunDip", String.format("Completed: %.2f", mStartDip/prevRR[2]));
+                    }
+                    else
+                    {
+                        Log.d("FunDip", String.format("Incomplete: %.2f", mStartDip/prevRR[2]));
+                    }
+                    mDipping = false;
+                    mStartDip = 0;
+                }
+
                 long currentTime = System.currentTimeMillis();
-                boolean isDip = (prevRR[2]/prevRR[3] < 0.975 && prevRR[2] < prevRR[1]) || (prevRR[2]/prevRR[1] < 0.975 && prevRR[2] < prevRR[3]);
+               // boolean isDip = (prevRR[2]/prevRR[3] < 0.975 && prevRR[2] < prevRR[1]) || (prevRR[2]/prevRR[1] < 0.975 && prevRR[2] < prevRR[3]);
+                //boolean isDip = (prevRR[1]/prevRR[0] <= 0.98 && prevRR[2]/prevRR[1] >= 0.99 && prevRR[2]/prevRR[1] <= 1.01 && prevRR[2]/prevRR[3] <= 0.98);// || (prevRR[2]/prevRR[1] < 0.975 && prevRR[2] < prevRR[3]);
+                //isDip |= 0.99 <= (prevRR[1]/prevRR[3])  && (prevRR[1]/prevRR[3]) <= 1.01;
+                Log.d("passDip1", String.format("%b", isDip));
                 isDip &= prevRR[1] < prevRR[0];
-                boolean isValid = currentTime - mLastMove > 2000;
+                //Log.d("passDip2", String.format("%b", isDip));
+                boolean isValid = currentTime - mLastMove > 1000;
+                Log.d("passDip3", String.format("%b", isValid));
                 isValid &= mLoss < 17;
+                Log.d("passDip4", String.format("%b", isValid));
 
                 //Log.d("breath", String.format("%.2f, %.2f, %.2f => %b => %.2f ---- %d %.2f", prevRR[0], prevRR[1], prevRR[2], breath, 200 * mReadings[0][1], mLoss, mAcclReading));
                 //Log.d("breath", String.format("%.2f, %.2f, %.2f => %b => %.2f ---- %d %s", prevRR[0], prevRR[1], prevRR[2], breath, 200 * mReadings[0][1], mLoss, acclString));
@@ -207,7 +240,8 @@ public class StressDetectorActivity extends AppCompatActivity {
                //         + "Quality = %s", event.getHeartRate(), event.getQuality()));
                 int temp = event.getHeartRate();
                // Log.d("Readings", String.format("%d,%s,%s,%s,%s", temp, mRRInt, mHRInterval, mGSR, mTemp));
-
+               // mRPM++;
+               // mSum += (mValids/mDips)/((double)temp/60.0);
 
                   mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(mCalcHR));
                    mKF2.predict();
@@ -224,24 +258,37 @@ public class StressDetectorActivity extends AppCompatActivity {
                     mKF2.update(mCurrentReadings, mIdentityMatrix);
                 }
 
-                mSum -= mLastRead[mPos];
-                mLastRead[mPos] = loss;
-                mSum += loss;
+             //   mSum -= mLastRead[mPos];
+             //   mLastRead[mPos] = loss;
+             //   mSum += loss;
 
-                double acrcy = mSum / Math.pow(100,2);
+              //  double acrcy = mSum / Math.pow(100,2);
                 //Log.d("Accuracy", String.format("%.3f %d %d %.3f %s %s %s", acrcy*100, tempHR, temp, loss, mGSR, mTemp, mAccl));
-                //Log.d("Accuracy", String.format("%.3f %d %d %.3f %s %s", acrcy*100, tempHR, temp, loss, mHRInterval, mAccl));
+                Log.d("Accuracy", String.format("%d %d %.3f %s %s", tempHR, temp, loss, mHRInterval, mAccl));
                 long currentTime = System.currentTimeMillis();
-                Log.d("level", String.format("%.2f, %d", (mValids/mDips), temp));
-                if(currentTime - mLastMinute > 60000)
+                Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids/mDips, (mValids/mDips)/(temp/60.0)));
+                if(currentTime - mLastMinute >= 60000)
                 {
-                    if((mValids/mDips) / (temp / 60.0) < 8)
-                        mStressMinutes++;
-                    mLastMinute = currentTime;
-                   // mValids = 0;
-                   // mDips = 0;
+                    if(mValids > 20)
+                    {
+                        mMinutes++;
+                        if(mDips == 0)
+                            mDips = 1;
+                        mSumAverage += mValids/mDips;
+                    }
+                    if(mValids/mDips > 20 && mValids > 20)
+                    {
+                        if((mDips == 0 && System.currentTimeMillis() - mLastMove >  15000) || mDips > 0)
+                            mStressMinutes++;
 
-                    appendToUI("" + mStressMinutes);
+                    }
+                    mLastMinute = currentTime;
+                    mValids = 0;
+                    mDips = 0;
+                    mSum = 0;
+                    mRPM = 0;
+
+                    appendToUI(String.format("%d / %d ==> %.2f",mStressMinutes, mMinutes, mSumAverage/mMinutes));
                 }
 
                 mPos++;
@@ -295,6 +342,7 @@ public class StressDetectorActivity extends AppCompatActivity {
         mNumtoRead = 1;
         mSum = 0;
         mLineNum = 1;
+        mMinutes = 0;
         mPrevLine = 0;
         mCalcHR = 0;
         mCounter = 0;
@@ -302,9 +350,13 @@ public class StressDetectorActivity extends AppCompatActivity {
         mAcclReading = 0;
         mLoss = 0;
         mBreathDetected = false;
+        mRPM = 0;
         mLastMove = 0;
         mLastMinute = 0;
         mIsStressed = false;
+        mSumAverage = 0;
+        mStartDip = 0;
+        mDipping = false;
         mLastRead = new double[mPrevCount];
         prevXYZ = new double[3];
         prevRR = new double[4];
@@ -431,8 +483,13 @@ public class StressDetectorActivity extends AppCompatActivity {
                                 double[] t = {1 / 4.0, 1 / 4.0, 1 / 4.0, 1 / 4.0};
                                 DenseMatrix64F Q = new DenseMatrix64F(2, 2, true, t);
                                 DenseMatrix64F H = new DenseMatrix64F(1, 2);
+                                //for (int i = 0; i < 2; i++) {
+                               // H.set(0, 0, 0.95);
+                               // H.set(0, 1, 0.05);
+                                //DenseMatrix64F H2 = new DenseMatrix64F(1, 2);
                                 for (int i = 0; i < 1; i++) {
-                                    H.set(i, i, 1.0);
+                                    H.set(i, i, 1);
+                                    //H.set(0, 1, 0);
                                 }
 
                                 double[] t2 = {1 / 8.0, 3 / 8.0, 3 / 8.0, 1 / 8.0};
@@ -442,7 +499,7 @@ public class StressDetectorActivity extends AppCompatActivity {
 
                                 mKF2 = new KalmanFilterOperations();
 
-                                mKF2.configure(F, Q, H);
+                                mKF2.configure(F, Q2, H);
                                 mKF2.setState(priorX, priorP);
                             }
                         });
