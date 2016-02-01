@@ -17,13 +17,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize" >
-        </activity>
-        <activity
             android:name=".CalendarActivity"
             android:label="@string/title_activity_calendar"
             android:screenOrientation="portrait"
@@ -37,12 +30,6 @@
         <activity
             android:name=".EventDetailsActivity"
             android:label="@string/title_activity_event_details"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
-        <activity
-            android:name=".StressDetectorActivity"
-            android:label="@string/title_activity_stress_detector"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>

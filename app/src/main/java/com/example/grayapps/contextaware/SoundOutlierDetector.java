@@ -140,4 +140,6 @@ public class SoundOutlierDetector
     {
        return mWeight.length;
     }
+
+    public static double[] getWeights(){ return mWeight;}
 }

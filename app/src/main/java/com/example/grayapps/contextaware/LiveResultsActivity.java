@@ -1,7 +1,6 @@
 package com.example.grayapps.contextaware;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.microsoft.band.BandClient;
 import com.microsoft.band.BandClientManager;
@@ -24,14 +22,12 @@ import com.microsoft.band.sensors.BandAccelerometerEvent;
 import com.microsoft.band.sensors.BandAccelerometerEventListener;
 import com.microsoft.band.sensors.BandHeartRateEvent;
 import com.microsoft.band.sensors.BandHeartRateEventListener;
+import com.microsoft.band.sensors.BandPedometerEvent;
+import com.microsoft.band.sensors.BandPedometerEventListener;
 import com.microsoft.band.sensors.BandRRIntervalEvent;
 import com.microsoft.band.sensors.BandRRIntervalEventListener;
 import com.microsoft.band.sensors.HeartRateConsentListener;
 import com.microsoft.band.sensors.SampleRate;
-import com.parse.GetCallback;
-import com.parse.Parse;
-import com.parse.ParseException;
-import com.parse.ParseObject;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
@@ -43,7 +39,6 @@ import java.util.TimerTask;
 public class LiveResultsActivity extends AppCompatActivity {
 
     private BandClient client = null;
-    private ParseObject profile;
     private TextView txtStatus;
     public static BarGraphFragment mBarChart;
     private static DenseMatrix64F mIdentityMatrix;
@@ -76,24 +71,17 @@ public class LiveResultsActivity extends AppCompatActivity {
     private double mAcclMoved;
     private double mAcclChange;
     private double[] mMostRecent;
+    private double mNumStressBits;
+    private double mRRReadings;
+    private double[][] mRanges;
+    private long mSteps;
+    private long mStepDifference;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-        Parse.enableLocalDatastore(this);
-        Parse.initialize(this, "nJPOm5SDvGW96lZm5PbZuzlmOyvyJN0hfnSoSojT", "d1jQXqyGIxj0Xc1dOyoVCXAylgtgym7DLhWWI5y8");
-        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        profile = ParseObject.createWithoutData("UserProfile", "myprofile");
-        profile.fetchFromLocalDatastoreInBackground(new GetCallback<ParseObject>() {
-            public void done(ParseObject object, ParseException e) {
-                if (e == null) {
-                    profile = object;
-                } else {
-
-                }
-            }
-        });
 
         mMinutes = 0;
         mCalcHR = 0;
@@ -112,6 +100,10 @@ public class LiveResultsActivity extends AppCompatActivity {
         mAcclMoved = 0;
         mAcclChange = 0;
         mMostRecent = new double[3];
+        mNumStressBits = 0;
+        mRRReadings = 0;
+        mSteps = 0;
+        mStepDifference = 0;
 
         long eventId = getIntent().getLongExtra("eventId", -1);
         int position = getIntent().getIntExtra("position", -1);
@@ -138,12 +130,29 @@ public class LiveResultsActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (SoundOutlierDetector.hasStarted()) {
+            SharedPreferences.Editor edit = getPreferences(MODE_PRIVATE).edit();
+            for (int i = 0; i < SoundOutlierDetector.getLength(); i++) {
+                edit.putFloat("max" + i, (float) SoundOutlierDetector.getMax(i));
+                edit.putFloat("min" + i, (float) SoundOutlierDetector.getMin(i));
+            }
+            double[] lookback = SoundOutlierDetector.getLookback();
+            for (int i = 0; i < SoundOutlierDetector.getRange(); i++) {
+                edit.putFloat("lookback" + i, (float) lookback[i]);
+            }
+            edit.commit();
+        }
+        Log.d("Stopped", "App was stopped");
+    }
+
     private BandRRIntervalEventListener mRRIntervalEventListener = new BandRRIntervalEventListener() {
         @Override
         public void onBandRRIntervalChanged(final BandRRIntervalEvent event) {
             if (event != null) {
                 double temp = event.getInterval();
-
                 mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
 
                 mKF.predict();
@@ -161,13 +170,13 @@ public class LiveResultsActivity extends AppCompatActivity {
                 if (!mDipping && prevRR[2] > prevRR[3]) {
                     mDipping = true;
                     mStartDip = prevRR[2];
-                    Log.d("FunDip", "Detected");
+                    // Log.d("FunDip", "Detected");
                 } else if (mDipping && prevRR[2] < prevRR[3]) {
                     if (mStartDip / prevRR[2] >= 1.05 && mStartDip / prevRR[2] <= 2) {
                         isDip = true;
-                        Log.d("FunDip", String.format("Completed: %.2f", mStartDip / prevRR[2]));
+                        //   Log.d("FunDip", String.format("Completed: %.2f", mStartDip / prevRR[2]));
                     } else {
-                        Log.d("FunDip", String.format("Incomplete: %.2f", mStartDip / prevRR[2]));
+                        // Log.d("FunDip", String.format("Incomplete: %.2f", mStartDip / prevRR[2]));
                     }
                     mDipping = false;
                     mStartDip = 0;
@@ -177,13 +186,25 @@ public class LiveResultsActivity extends AppCompatActivity {
                 isDip &= prevRR[1] < prevRR[0];
                 boolean isValid = currentTime - mLastMove > 1000;
                 isValid |= mLoss < 17;
-
+                mRRReadings++;
+                if (100 * Math.abs((prevRR[3] / prevRR[2]) - 1) <= 2.0) {
+                    mNumStressBits++;
+                }
                 if (isValid) {
+
                     mValids++;
                     if (isDip) {
                         mDips++;
                     }
+
                 }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("Interval", String.format("%.3f %.3f", prevRR[3], (mNumStressBits / mRRReadings)));
+                    }
+                });
             }
         }
     };
@@ -199,10 +220,35 @@ public class LiveResultsActivity extends AppCompatActivity {
                 prevXYZ[1] = event.getAccelerationY();
                 prevXYZ[2] = event.getAccelerationZ();
                 if (mAcclReading > 0.01) {
+
                     mLastMove = System.currentTimeMillis();
-                    mAcclMoved++;
+                    if (mAcclReading > 5.0)
+                    {
+                        mAcclMoved++;
+                        Log.d("movement", String.format("move %.3f", mAcclReading));
+                    }
                 }
-                mMostRecent[2] = mAcclMoved / mAcclChange;
+                mMostRecent[2] = (mAcclMoved + (3 * mStepDifference) ) / mAcclChange;
+            }
+        }
+    };
+
+    private BandPedometerEventListener mStepEventListener = new BandPedometerEventListener() {
+        @Override
+        public void onBandPedometerChanged(BandPedometerEvent event) {
+            if(event != null)
+            {
+                if(mSteps == 0)
+                {
+                    mSteps = event.getTotalSteps();
+                }
+                else
+                {
+                    if(mStepDifference < event.getTotalSteps() - mSteps){
+                    Log.d("movement", "step");
+                    mStepDifference = event.getTotalSteps() - mSteps;}
+                }
+
             }
         }
     };
@@ -227,15 +273,22 @@ public class LiveResultsActivity extends AppCompatActivity {
                 }
 
                 long currentTime = System.currentTimeMillis();
-                Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids / mDips, (mValids / mDips) / (temp / 60.0)));
+                final int temp2 = temp;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp2, mStressMinutes, mValids / mDips, (mValids / mDips) * (mNumStressBits / mRRReadings)));
+                    }
+                });
+                // Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids / mDips, (mValids / mDips) / (temp / 60.0)));
                 if (currentTime - mLastMinute >= 60000) {
                     if (mValids > 20) {
                         mMinutes++;
                         if (mDips == 0)
                             mDips = 1;
-                        mSumAverage += mValids / mDips;
+                        mSumAverage += (mValids / mDips) * (mNumStressBits / mRRReadings);
                     }
-                    if (mValids / mDips > 20 && mValids > 20) {
+                    if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20 && mValids > 20) {
                         if ((mDips == 0 && System.currentTimeMillis() - mLastMove > 15000) || mDips > 0)
                             mStressMinutes++;
 
@@ -243,13 +296,16 @@ public class LiveResultsActivity extends AppCompatActivity {
                     mLastMinute = currentTime;
                     mValids = 0;
                     mDips = 0;
-                    if(mMinutes > 0){
-                    mMostRecent[0] = (double) mStressMinutes / mMinutes;
-                    }
-                    else {
+                    if (mMinutes > 0) {
+                        mMostRecent[0] = (double) mStressMinutes / mMinutes;
+                    } else {
                         mMostRecent[0] = 0;
                     }
+                    mNumStressBits = 0;
+                    mRRReadings = 0;
                 }
+
+                appendToUI(String.format("%.3f", mSumAverage / mMinutes));
 
             }
 
@@ -267,6 +323,7 @@ public class LiveResultsActivity extends AppCompatActivity {
                             client.getSensorManager().registerRRIntervalEventListener(mRRIntervalEventListener);
                             client.getSensorManager().registerHeartRateEventListener(mHeartRateEventListener);
                             client.getSensorManager().registerAccelerometerEventListener(mAccelerometerEventListener, SampleRate.MS128);
+                            client.getSensorManager().registerPedometerEventListener(mStepEventListener);
                         } else {
                             appendToUI("You have not given this application consent to access heart rate data yet."
                                     + " Please press the Heart Rate Consent button.\n");
@@ -324,8 +381,8 @@ public class LiveResultsActivity extends AppCompatActivity {
 
                                 H.set(0, 0, 1);
 
-                              //  double[] t2 = {1 / 8.0, 3 / 8.0, 3 / 8.0, 1 / 8.0};
-                              //  DenseMatrix64F Q2 = new DenseMatrix64F(2, 2, true, t2);
+                                //  double[] t2 = {1 / 8.0, 3 / 8.0, 3 / 8.0, 1 / 8.0};
+                                //  DenseMatrix64F Q2 = new DenseMatrix64F(2, 2, true, t2);
                                 mKF.configure(F, Q, H);
                                 mKF.setState(priorX, priorP);
 
@@ -392,7 +449,7 @@ public class LiveResultsActivity extends AppCompatActivity {
     }
 
     public void startListening() {
-        if (SoundOutlierDetector.hasStarted()) {
+      /*  if (SoundOutlierDetector.hasStarted()) {
             Context context = getApplicationContext();
             CharSequence text = "Already Listening!";
             int duration = Toast.LENGTH_SHORT;
@@ -401,8 +458,7 @@ public class LiveResultsActivity extends AppCompatActivity {
             toast.show();
             return;
         }
-        if (profile != null)
-            Log.d("ObjectID", "ID: " + profile.getObjectId());
+*/
 
         mDetector = new SoundOutlierDetector();
         mSensor = new SoundMeter();
@@ -411,10 +467,11 @@ public class LiveResultsActivity extends AppCompatActivity {
         mDetector.start();
         mStates = new int[SoundOutlierDetector.getLength() - 1];
         mChanges = new int[SoundOutlierDetector.getLength() - 1];
-        if (profile.has("max0")) {
+        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        if (prefs.contains("max0")) {
             for (int i = 0; i < SoundOutlierDetector.getLength(); i++) {
-                double max = profile.getDouble("max" + i);
-                double min = profile.getDouble("max" + i);
+                double max = prefs.getFloat("max" + i, -1);
+                double min = prefs.getFloat("min" + i, -1);
                 if (max >= 0) {
                     SoundOutlierDetector.setMax(max, i);
                 }
@@ -422,14 +479,10 @@ public class LiveResultsActivity extends AppCompatActivity {
                     SoundOutlierDetector.setMin(min, i);
                 }
             }
-            for (int i = 0; i < mStates.length; i++) {
-                int state = profile.getInt("state" + i);
-                mStates[i] = state;
-            }
+
             double[] lookback = new double[SoundOutlierDetector.getRange()];
             for (int i = 0; i < SoundOutlierDetector.getRange(); i++)
-                lookback[i] = profile.getDouble("lookback" + i);
-            int location = profile.getInt("location");
+                lookback[i] = prefs.getFloat("lookback" + i, 0);
 
             for (int i = 0; i < SoundOutlierDetector.getRange(); i++) {
                 if (lookback[i] >= 0) {
@@ -437,9 +490,9 @@ public class LiveResultsActivity extends AppCompatActivity {
                 }
             }
 
-            if (location >= 0) {
-                SoundOutlierDetector.setLocation(location);
-            }
+//            if (location >= 0) {
+//                SoundOutlierDetector.setLocation(location);
+            //          }
         }
         mUps = 0;
         mDowns = 0;
@@ -454,15 +507,16 @@ public class LiveResultsActivity extends AppCompatActivity {
         private int mTimesRun = 0;
         private int mLouder = 0;
         private int mQuieter = 0;
+        private double[] mWeights = SoundOutlierDetector.getWeights();
 
         @Override
         public void run() {
             mTimesRun++;
             double readings = 5;
             double total = 0;
-            final double[] val = mSensor.getAmplitudeEMA();
+            double[] val = mSensor.getAmplitudeEMA();
             // Log.d("FirstValue", "" + val[0]);
-            final double[][] ranges = mDetector.update(val[0]);
+            double[][] ranges = mDetector.update(val[0]);
             count++;
 
             for (int i = 0; i < mStates.length; i++) {
@@ -495,25 +549,29 @@ public class LiveResultsActivity extends AppCompatActivity {
                 }
             }
 
-            switch (mChanges[0]) {
-                case 1:
-                    mQuieter++;
-                    break;
-                case 4:
-                    mLouder++;
-                    break;
+            for (int i = 0; i < mChanges.length; i++) {
+                switch (mChanges[i]) {
+                    case 1:
+                        mQuieter += 200 * mWeights[i];
+                        break;
+                    case 4:
+                        mLouder += 200 * mWeights[i];
+                        break;
+                }
             }
 
-            if(mLouder > mQuieter)
-            {
-                mMostRecent[1] =  0.5 + (((double) mLouder + 1.0) / ( 2.0 * ((double) mLouder + mQuieter + 1.0)));
-            }
-            else
-            {
-                mMostRecent[1] =  0.5 - (((double) mQuieter + 1.0) / ( 2.0 * ((double) mLouder + mQuieter + 1.0)));
-            }
 
-            Log.d("Readings",String.format("stress: %.5f, noise: %.5f %d, move: %.5f", mMostRecent[0], mMostRecent[1], mChanges[0], mMostRecent[2]));
+            //if (mLouder > mQuieter) {
+            //    mMostRecent[1] = 0.5 + (((double) mLouder + 1.0) / (2.0 * ((double) mLouder + mQuieter + 1.0)));
+            //} else {
+            //    mMostRecent[1] = 0.5 - (((double) mQuieter + 1.0) / (2.0 * ((double) mLouder + mQuieter + 1.0)));
+            //}
+
+            mMostRecent[1] = (((double) mLouder + 1.0) / (((double) mLouder + mQuieter + 1.0)));
+
+            mRanges = ranges;
+
+            Log.d("Readings", String.format("stress: %.5f, noise: %.5f %d, move: %.5f", mMostRecent[0], mMostRecent[1], mChanges[0], mMostRecent[2]));
             final double[] update = mMostRecent;
             runOnUiThread(new Runnable() {
                               @Override
@@ -525,6 +583,8 @@ public class LiveResultsActivity extends AppCompatActivity {
                           }
 
             );
+
+
         }
 
     }

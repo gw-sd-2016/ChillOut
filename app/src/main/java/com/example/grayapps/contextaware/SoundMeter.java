@@ -85,9 +85,9 @@ public class SoundMeter {
 
     public double[] getAmplitudeEMA() {
         double amp = getAmplitude();
-        Log.d("AMP", "" + amp);
+       // Log.d("AMP", "" + amp);
         mEMA = (EMA_FILTER * amp) + ((1.0 - EMA_FILTER) * mEMA);
-        Log.d("EMA", "" + mEMA);
+       // Log.d("EMA", "" + mEMA);
         //Log.d("DB", "" + db);
         mCurrentReadings = new DenseMatrix64F(1, 1, true, mEMA);
 

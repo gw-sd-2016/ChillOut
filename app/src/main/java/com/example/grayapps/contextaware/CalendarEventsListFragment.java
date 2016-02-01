@@ -25,8 +25,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.grayapps.contextaware.dummy.DummyContent;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -157,7 +155,6 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             Log.d("Duration", String.valueOf(duration.getText()));
             Intent intent = new Intent(getContext(), EventDetailsActivity.class);
             startActivity(intent);
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
         }
     }
 
