@@ -76,6 +76,8 @@ public class LiveResultsActivity extends AppCompatActivity {
     private double[][] mRanges;
     private long mSteps;
     private long mStepDifference;
+    private int mAverageHR;
+    private int mHRreadingCount;
 
 
     @Override
@@ -104,6 +106,8 @@ public class LiveResultsActivity extends AppCompatActivity {
         mRRReadings = 0;
         mSteps = 0;
         mStepDifference = 0;
+        mAverageHR = 0;
+        mHRreadingCount = 0;
 
         long eventId = getIntent().getLongExtra("eventId", -1);
         int position = getIntent().getIntExtra("position", -1);
@@ -258,7 +262,8 @@ public class LiveResultsActivity extends AppCompatActivity {
         public void onBandHeartRateChanged(final BandHeartRateEvent event) {
             if (event != null) {
                 int temp = event.getHeartRate();
-
+                mAverageHR += temp;
+                mHRreadingCount++;
                 mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(mCalcHR));
                 mKF2.predict();
                 mKF2.update(mCurrentReadings, mIdentityMatrix);
@@ -282,17 +287,17 @@ public class LiveResultsActivity extends AppCompatActivity {
                 });
                 // Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids / mDips, (mValids / mDips) / (temp / 60.0)));
                 if (currentTime - mLastMinute >= 60000) {
-                    if (mValids > 20) {
+                    if (mValids / ((double) mAverageHR/mHRreadingCount) > 1/3.0) {
                         mMinutes++;
                         if (mDips == 0)
                             mDips = 1;
                         mSumAverage += (mValids / mDips) * (mNumStressBits / mRRReadings);
+                        if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20) {
+                            if ( System.currentTimeMillis() - mLastMove > 15000)
+                                mStressMinutes++;
+                        }
                     }
-                    if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20 && mValids > 20) {
-                        if ((mDips == 0 && System.currentTimeMillis() - mLastMove > 15000) || mDips > 0)
-                            mStressMinutes++;
 
-                    }
                     mLastMinute = currentTime;
                     mValids = 0;
                     mDips = 0;
@@ -303,6 +308,8 @@ public class LiveResultsActivity extends AppCompatActivity {
                     }
                     mNumStressBits = 0;
                     mRRReadings = 0;
+                    mAverageHR = 0;
+                    mHRreadingCount = 0;
                 }
 
                 appendToUI(String.format("%.3f", mSumAverage / mMinutes));
