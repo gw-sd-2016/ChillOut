@@ -1,32 +1,56 @@
 package com.example.grayapps.contextaware;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by Adam Gray on 2/5/16.
  */
 public class Node
 {
-    int mFraction;
-    String[] mParents;
+    private int mFraction;
+    private int[] mParents;
+    private static HashMap<String, Integer> mNodeIDs = new HashMap<String, Integer>();
+    private static HashMap<Integer, String> mStringIDs = new HashMap<Integer, String>();
+    private static int mNewNodeID = 0;
 
-    public Node(ArrayList<String> parentIDs)
+    public Node(String id, ArrayList<String> parentIDs)
     {
-        mFraction = (1 << 16) | 2; // first 16 bits are 1, next 16 bits are 2
+        mFraction = (2 << 16) | 4; // first 16 bits are 1, next 16 bits are 2
+        // mFraction = 1;
+        if(!mNodeIDs.containsKey(id))
+        {
+            mNodeIDs.put(id, mNewNodeID++);
+        }
         if (parentIDs != null && parentIDs.size() > 0)
         {
-            mParents = new String[parentIDs.size()];
+            mParents = new int[parentIDs.size()];
             for (int i = 0; i < parentIDs.size(); i++)
             {
                 StringBuilder parent = new StringBuilder();
-                for(int j = 0; j < parentIDs.size(); j++)
+                for (int j = 0; j < parentIDs.size(); j++)
                 {
-                    if(j != i)
+                    if (j != i)
                     {
                         parent.append(parentIDs.get(j));
                         parent.append('_');
                     }
                 }
-                mParents[i] = parent.toString();
+                if(!mStringIDs.containsKey(getKey(parent.toString())))
+                {
+                    mStringIDs.put(mNewNodeID, parent.toString());
+                }
+
+                if (!mNodeIDs.containsKey(parent.toString()))
+                {
+                    mParents[i] = mNewNodeID;
+                    mNodeIDs.put(parent.toString(), mNewNodeID++);
+                    mStringIDs.put(mNewNodeID - 1, parent.toString());
+                }
+                else
+                {
+                    mParents[i] = mNodeIDs.get(parent.toString());
+                }
+
             }
         }
     }
@@ -34,13 +58,23 @@ public class Node
     public void update(boolean stressReading)
     {
         int denom = getDenominator();
+        int cap = 10;
+        // if(denom < cap)
+
         setDenominator(++denom);
 
-        if(stressReading)
+        if (stressReading)
         {
             int num = getNumerator();
             setNumerator(++num);
         }
+
+      /*  else
+        {
+            int val = (int) Math.round((cap/2) * getFraction());
+            setNumerator(val);
+            setDenominator(cap/2);
+        }*/
     }
 
     private void setDenominator(int denominator)
@@ -70,8 +104,23 @@ public class Node
         return (double) getNumerator() / getDenominator();
     }
 
-    public String[] getParents()
+    public int[] getParents()
     {
         return mParents;
+    }
+
+    public static int getKey(String idString)
+    {
+        if (mNodeIDs.containsKey(idString))
+        {
+            return mNodeIDs.get(idString);
+        }
+
+        return Integer.MAX_VALUE;
+    }
+
+    public static String keyString(int key)
+    {
+        return mStringIDs.get(key);
     }
 }

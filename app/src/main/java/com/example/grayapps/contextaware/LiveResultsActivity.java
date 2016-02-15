@@ -78,6 +78,7 @@ public class LiveResultsActivity extends AppCompatActivity {
     private long mStepDifference;
     private int mAverageHR;
     private int mHRreadingCount;
+    private int breaths;
 
 
     @Override
@@ -85,6 +86,7 @@ public class LiveResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
 
+        breaths = 0;
         mMinutes = 0;
         mCalcHR = 0;
         mStressMinutes = 0;
@@ -198,6 +200,7 @@ public class LiveResultsActivity extends AppCompatActivity {
 
                     mValids++;
                     if (isDip) {
+                        appendToUI(++breaths + " breaths detected");
                         mDips++;
                     }
 
@@ -293,7 +296,6 @@ public class LiveResultsActivity extends AppCompatActivity {
                             mDips = 1;
                         mSumAverage += (mValids / mDips) * (mNumStressBits / mRRReadings);
                         if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20) {
-                            if ( System.currentTimeMillis() - mLastMove > 15000)
                                 mStressMinutes++;
                         }
                     }
@@ -312,7 +314,7 @@ public class LiveResultsActivity extends AppCompatActivity {
                     mHRreadingCount = 0;
                 }
 
-                appendToUI(String.format("%.3f", mSumAverage / mMinutes));
+              //  appendToUI(String.format("%.3f", mSumAverage / mMinutes));
 
             }
 

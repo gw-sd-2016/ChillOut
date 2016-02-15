@@ -27,5 +27,8 @@
         android:layout_below="@+id/btnConsent"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="@dimen/activity_horizontal_margin"
-        android:id="@+id/txtStatus"/>
+        android:id="@+id/txtStatus"
+        android:textSize="24sp"
+        android:text="0 breaths detected"/>
+
 </RelativeLayout>
