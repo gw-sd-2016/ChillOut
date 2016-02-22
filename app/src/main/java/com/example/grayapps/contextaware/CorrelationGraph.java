@@ -8,6 +8,8 @@ import java.util.HashMap;
 public class CorrelationGraph
 {
     private HashMap<Integer, Node> mNodes;
+    private HashMap<Integer, Double> mPredictedVals;
+
     public CorrelationGraph()
     {
         mNodes = new HashMap<Integer, Node>(111);
@@ -15,7 +17,7 @@ public class CorrelationGraph
 
     public boolean insert(String id, Node n)
     {
-        if(id == null || n == null || mNodes.containsKey(Node.getKey(id)))
+        if (id == null || n == null || mNodes.containsKey(Node.getKey(id)))
         {
             return false;
         }
@@ -37,76 +39,74 @@ public class CorrelationGraph
 
     public double makePrediction(String id)
     {
-        //  System.out.println("Size: " + mNodes.size());
-        if(id == null)
-        {
-            return -1;
-        }
+        //   System.out.println(id);
+        assert id != null : "Node ID does not exist. " + id;
         Node n = mNodes.get(Node.getKey(id));
+        assert n != null : id;
 
-        if(n == null)
-            return 0;
-
-        if(n.getDenominator() >= 11 && n.getParents().length < 3)
+        if(!n.hasParents())
         {
-            // System.out.println("It's null");
             return n.getFraction();
         }
+
         int[] parentIDs = n.getParents();
-        Node[] parents = new Node[parentIDs.length];
+        Node[] parents =  new Node[parentIDs.length];
         double[] values = new double[parentIDs.length];
+        double[] factors = new double[parentIDs.length];
         double total = 0;
+        double prediction = 0;
         for(int i = 0; i < parentIDs.length; i++)
         {
             parents[i] = mNodes.get(parentIDs[i]);
+            assert parents[i] != null : parentIDs.length;
+            if(parents[i].getDenominator() <= Node.minDenom())
+            {
+                if(!mPredictedVals.containsKey(parentIDs[i]))
+                {
+                    factors[i] = makePrediction(Node.keyString(parentIDs[i]));
+                    mPredictedVals.put(parentIDs[i], factors[i]);
+                }
+                else
+                {
+                    factors[i] = mPredictedVals.get(parentIDs[i]);
+                }
+            }
+            else
+            {
+                factors[i] = parents[i].getFraction();
+            }
+            double loss = getLoss(n.getFraction(), factors[i], parents[i].getDenominator());
+            values[i] = Math.exp(-loss);
 
-            if(parents[i] == null)
-                return -1;
-
-            double loss = getLoss(n, parents[i]);
-
-            values[i] = Math.exp(-loss) * n.getDenominator();
             total += values[i];
-
-
-            // System.out.format("%s <== %.5f | %d/%d%n", Node.keyString(parentIDs[i]), parents[i].getFraction(), parents[i].getNumerator(), parents[i].getDenominator());
         }
 
-
-        double prediction = 0;
         for(int i = 0; i < values.length; i++)
         {
-           /**/ double pastPrediction = makePrediction(Node.keyString(parentIDs[i])) / 2.0;
-            if(pastPrediction > 0)
-                prediction += (pastPrediction + (1 * parents[i].getFraction()/ 2.0)) * (values[i] / total);
-            else
-                prediction += parents[i].getFraction() * (values[i] / total);
+            prediction += (factors[i] * (values[i] / total));
         }
-        // System.out.format("%s => %.5f : %.5f%n" , id, prediction, n.getFraction());
 
-
-        if(n.getDenominator() < 20)
-            return (prediction + n.getFraction()) / 2.0;
-        else
-            return n.getFraction();
+        return prediction;
     }
 
-    private double getLoss(Node n, Node ancestor)
+
+    private double getLoss(double nFraction, double pFraction, int pDenom)
     {
-        return Math.pow((n.getFraction() - ancestor.getFraction()), 2);
+        return Math.pow((nFraction - pFraction), 2.0) / (double) pDenom;
     }
 
     public void print(ArrayList<String[]> factors)
     {
-        for(int i = 0; i < factors.size(); i++)
+        for (int i = 0; i < factors.size(); i++)
         {
-            for(int j = 0; j < factors.get(i).length; j++)
+            for (int j = 0; j < factors.get(i).length; j++)
             {
                 if (mNodes.containsKey(Node.getKey(factors.get(i)[j] + '_')))
                     System.out.format("%s %d/%d = %.3f | ", factors.get(i)[j], getNode(factors.get(i)[j] + '_').getNumerator(), getNode(factors.get(i)[j] + '_').getDenominator(), getNode(factors.get(i)[j] + '_').getFraction());
-                if(j > 0 && j % 4 == 0)
+                if (j > 0 && j % 4 == 0)
                     System.out.println();
-            }System.out.println();
+            }
+            System.out.println();
         }
     }
 
@@ -114,4 +114,25 @@ public class CorrelationGraph
     {
         return mNodes.size();
     }
+
+    public double predict(String id)
+    {
+        mPredictedVals = new HashMap<Integer, Double>();
+        double prediction = makePrediction(id);
+        mPredictedVals = null;
+        return prediction;
+    }
+
+    public void changeNodeNumerator(String id)
+    {
+        Node n = mNodes.get(Node.getKey(id));
+        double prediction = predict(id);
+        int startingNumerator =  (int) Math.round(10 * prediction);
+        if(startingNumerator != 5)
+        {
+            System.out.println(startingNumerator);
+            n.updateStartingNumerator(startingNumerator);
+        }
+    }
+
 }

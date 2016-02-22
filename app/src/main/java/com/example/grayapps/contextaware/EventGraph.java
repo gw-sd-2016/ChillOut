@@ -15,7 +15,7 @@ public class EventGraph
         mGraph = new CorrelationGraph();
     }
 
-    public void addEvent(ArrayList<ArrayList<String>> params, boolean stressReading)
+    public void addEvent(ArrayList<ArrayList<String>> params, int stressReading)
     {
         mUpdatedNodes = new HashSet<String>();
         for(int i = 0; i < params.size(); i++)
@@ -37,8 +37,13 @@ public class EventGraph
                 id.append('_');
             }
             if(!mGraph.containsNode(id.toString()))
-                updateGraph(params.get(i), false);
-            double val = mGraph.makePrediction(id.toString());
+            {
+                updateGraph(params.get(i), 0);
+                assert mGraph.containsNode(id.toString());
+                //System.out.println(id.toString());
+            }
+
+            double val = mGraph.predict(id.toString());
             if(val > 0)
             {
                 total[i] = val;
@@ -48,35 +53,39 @@ public class EventGraph
         return total;
     }
 
-    private void updateGraph(ArrayList<String> params, boolean stressReading)
+    private void updateGraph(ArrayList<String> params, int stressReading)
     {
 
-        for(int i = 0; i < (1 << params.size()) - 1; i++)
+        for(int i = 0; i < (1 << params.size()); i++)
         {
             StringBuilder id = new StringBuilder();
             ArrayList<String> parents = new ArrayList<String>();
             int p = i;
             for(int j = 0; j < params.size(); j++)
             {
-                if(p % 2 == 0)
+                if(p % 2 == 1)
                 {
                     id.append(params.get(j));
                     id.append('_');
                     parents.add(params.get(j));
+
                 }
 
                 p /= 2;
             }
-            if(mGraph.containsNode(id.toString()) && ! mUpdatedNodes.contains(id.toString()))
+            if(mGraph.containsNode(id.toString()) && !mUpdatedNodes.contains(id.toString()))
             {
                 mGraph.getNode(id.toString()).update(stressReading);
                 mUpdatedNodes.add(id.toString());
             }
-            else
+            else if(!mGraph.containsNode(id.toString()))
             {
-                if(id.toString() != null && id.toString().length() > 0){
+                if(id.toString() != null && id.toString().length() > 0)
+                {
+                    //   System.out.println(id.toString());
                     mGraph.insert(id.toString(), new Node(id.toString(), parents));
                     mUpdatedNodes.add(id.toString());
+                    //mGraph.changeNodeNumerator(id.toString());
                 }
             }
         }

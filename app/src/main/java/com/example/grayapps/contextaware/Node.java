@@ -12,14 +12,17 @@ public class Node
     private static HashMap<String, Integer> mNodeIDs = new HashMap<String, Integer>();
     private static HashMap<Integer, String> mStringIDs = new HashMap<Integer, String>();
     private static int mNewNodeID = 0;
+    private static int mMinDenom = 2;
 
     public Node(String id, ArrayList<String> parentIDs)
     {
-        mFraction = (2 << 16) | 4; // first 16 bits are 1, next 16 bits are 2
-        // mFraction = 1;
-        if(!mNodeIDs.containsKey(id))
+        mFraction = (1 << 16) | mMinDenom; // first 16 bits are 1, next 16 bits are 2
+        if (!mNodeIDs.containsKey(id))
         {
-            mNodeIDs.put(id, mNewNodeID++);
+            assert getKey(id) == Integer.MAX_VALUE;
+            mNodeIDs.put(id, mNewNodeID);
+            mStringIDs.put(mNewNodeID, id);
+            mNewNodeID++;
         }
         if (parentIDs != null && parentIDs.size() > 0)
         {
@@ -35,52 +38,50 @@ public class Node
                         parent.append('_');
                     }
                 }
-                if(!mStringIDs.containsKey(getKey(parent.toString())))
+                if (getKey(parent.toString()) == Integer.MAX_VALUE)
                 {
                     mStringIDs.put(mNewNodeID, parent.toString());
-                }
-
-                if (!mNodeIDs.containsKey(parent.toString()))
-                {
                     mParents[i] = mNewNodeID;
-                    mNodeIDs.put(parent.toString(), mNewNodeID++);
-                    mStringIDs.put(mNewNodeID - 1, parent.toString());
+                    mNodeIDs.put(parent.toString(), mNewNodeID);
+                    mNewNodeID++;
                 }
                 else
                 {
                     mParents[i] = mNodeIDs.get(parent.toString());
                 }
-
             }
+        }
+        else
+        {
+            mParents = new int[0];
         }
     }
 
-    public void update(boolean stressReading)
+    public void update(int stressReading)
     {
+        if(stressReading == 0)
+            return;
+
         int denom = getDenominator();
-        int cap = 10;
-        // if(denom < cap)
 
         setDenominator(++denom);
 
-        if (stressReading)
+        if (stressReading > 0)
         {
             int num = getNumerator();
             setNumerator(++num);
         }
-
-      /*  else
-        {
-            int val = (int) Math.round((cap/2) * getFraction());
-            setNumerator(val);
-            setDenominator(cap/2);
-        }*/
     }
 
     private void setDenominator(int denominator)
     {
         mFraction &= ((1 << 16) - 1) << 16;
         mFraction |= denominator;
+    }
+
+    public void updateStartingNumerator(int n)
+    {
+        setNumerator(n);
     }
 
     public int getDenominator()
@@ -119,8 +120,18 @@ public class Node
         return Integer.MAX_VALUE;
     }
 
+    public boolean hasParents()
+    {
+        return mParents != null && mParents.length > 1;
+    }
+
     public static String keyString(int key)
     {
         return mStringIDs.get(key);
+    }
+
+    public static int minDenom()
+    {
+        return mMinDenom;
     }
 }
