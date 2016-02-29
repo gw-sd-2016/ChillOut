@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import com.parse.Parse;
+
 public class CalendarActivity extends AppCompatActivity implements CalendarEventsListFragment.OnFragmentInteractionListener {
 
     @Override
@@ -17,6 +19,9 @@ public class CalendarActivity extends AppCompatActivity implements CalendarEvent
         setContentView(R.layout.activity_calendar);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this);
     }
 
     @Override

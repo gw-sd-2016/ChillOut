@@ -95,21 +95,6 @@ public class CorrelationGraph
         return Math.pow((nFraction - pFraction), 2.0) / (double) pDenom;
     }
 
-    public void print(ArrayList<String[]> factors)
-    {
-        for (int i = 0; i < factors.size(); i++)
-        {
-            for (int j = 0; j < factors.get(i).length; j++)
-            {
-                if (mNodes.containsKey(Node.getKey(factors.get(i)[j] + '_')))
-                    System.out.format("%s %d/%d = %.3f | ", factors.get(i)[j], getNode(factors.get(i)[j] + '_').getNumerator(), getNode(factors.get(i)[j] + '_').getDenominator(), getNode(factors.get(i)[j] + '_').getFraction());
-                if (j > 0 && j % 4 == 0)
-                    System.out.println();
-            }
-            System.out.println();
-        }
-    }
-
     public int graphSize()
     {
         return mNodes.size();
@@ -121,18 +106,6 @@ public class CorrelationGraph
         double prediction = makePrediction(id);
         mPredictedVals = null;
         return prediction;
-    }
-
-    public void changeNodeNumerator(String id)
-    {
-        Node n = mNodes.get(Node.getKey(id));
-        double prediction = predict(id);
-        int startingNumerator =  (int) Math.round(10 * prediction);
-        if(startingNumerator != 5)
-        {
-            System.out.println(startingNumerator);
-            n.updateStartingNumerator(startingNumerator);
-        }
     }
 
 }

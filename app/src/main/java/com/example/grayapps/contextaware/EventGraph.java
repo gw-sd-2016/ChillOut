@@ -40,7 +40,6 @@ public class EventGraph
             {
                 updateGraph(params.get(i), 0);
                 assert mGraph.containsNode(id.toString());
-                //System.out.println(id.toString());
             }
 
             double val = mGraph.predict(id.toString());
@@ -82,10 +81,8 @@ public class EventGraph
             {
                 if(id.toString() != null && id.toString().length() > 0)
                 {
-                    //   System.out.println(id.toString());
                     mGraph.insert(id.toString(), new Node(id.toString(), parents));
                     mUpdatedNodes.add(id.toString());
-                    //mGraph.changeNodeNumerator(id.toString());
                 }
             }
         }
@@ -96,8 +93,4 @@ public class EventGraph
         return mGraph.graphSize();
     }
 
-    public void print(ArrayList<String[]> factors)
-    {
-        mGraph.print(factors);
-    }
 }
