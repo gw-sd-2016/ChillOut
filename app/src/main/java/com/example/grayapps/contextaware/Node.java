@@ -13,10 +13,12 @@ public class Node
     private static HashMap<Integer, String> mStringIDs = new HashMap<Integer, String>();
     private static int mNewNodeID = 0;
     private static int mMinDenom = 2;
+    private double mImpact;
 
     public Node(String id, ArrayList<String> parentIDs)
     {
         mFraction = (1 << 16) | mMinDenom; // first 16 bits are 1, next 16 bits are 2
+        // mFraction = 1;
         if (!mNodeIDs.containsKey(id))
         {
             assert getKey(id) == Integer.MAX_VALUE;
@@ -55,6 +57,8 @@ public class Node
         {
             mParents = new int[0];
         }
+
+        mImpact = 1;
     }
 
     public void update(int stressReading)
@@ -102,7 +106,7 @@ public class Node
 
     public double getFraction()
     {
-        return (double) getNumerator() / getDenominator();
+        return (double)getNumerator() / getDenominator();
     }
 
     public int[] getParents()
@@ -133,5 +137,22 @@ public class Node
     public static int minDenom()
     {
         return mMinDenom;
+    }
+
+    public void updateImpact(double weight)
+    {
+        if(mImpact > 0)
+        {
+            int size = mParents.length;
+            double fraction = mImpact / (size + 1);
+            mImpact -= fraction;
+            mImpact += weight;
+            //System.out.println(fraction - weight);
+        }
+    }
+
+    public double getImpact()
+    {
+        return mImpact;
     }
 }

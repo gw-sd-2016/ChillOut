@@ -19,7 +19,7 @@ public class EventSimulator
     public static void main(String args[])
     {
         double[] totals = new double[4];
-        double runs = 100;
+        double runs = 1;
         for (int z = 0; z < runs; z++)
         {
             EventGraph testGraph = new EventGraph();
@@ -107,7 +107,7 @@ public class EventSimulator
                 {
                     seven.add(peeps[j]);
                 }
-                int random = 3;
+                int random = 0;
                 int stress = -1;
                 boolean sLevel = rand.nextInt(10) < random;
                 int remove;
@@ -127,12 +127,13 @@ public class EventSimulator
                     five.remove(remove + 1);
                     six.remove(remove - 1);
                     seven.remove(remove);
+                    test.remove(remove + 5);
                 }
                 params.add(four);
                 params.add(five);
                 params.add(seven);
 
-                if (print(testing) == 1)
+                if (print(testing) > 0)
                     sLevel = rand.nextInt(10) > random - 1;
 
                 if (sLevel)
@@ -161,6 +162,7 @@ public class EventSimulator
                     params.remove(1);
                     params.remove(2);
                     double predicted[] = testGraph.predictEvent(params);
+
                     double prediction = 0;
 
                     double sum = 0;
@@ -169,9 +171,10 @@ public class EventSimulator
                         sum += predicted[j];
                     }
 
-                    prediction = sum / predicted.length;
+                    prediction = sum / (predicted.length);
                     double range = 0.0;
                     int printParams = print(testing);
+                    System.out.format("***************%.2f %b => %d%n", prediction, sLevel, printParams);
                     if (sLevel)
                     {
                         count[6]++;
@@ -181,14 +184,16 @@ public class EventSimulator
                     if (prediction > 0.5 + range)
                     {
                         count[1]++;
-                        if (printParams == 1)
+                        if (printParams > 0)
                         {
                             count[0]++;
+
                         }
                         if (sLevel)
                         {
                             count[2]++;
                         }
+
                     }
                     else
                     {
@@ -225,9 +230,25 @@ public class EventSimulator
         int val = 0;
         for (int i = 0; i < params.size(); i++)
         {
-            if ((params.get(i).contains("Monday") && params.get(i).contains("Morning")) || (params.get(i).contains("Mom") && params.get(i).contains("Dad")) || (params.get(i).contains("Ron") && !params.get(i).contains("Leslie")) || (params.get(i).contains("Work") && (params.get(i).contains("Jim") || params.get(i).contains("Dwight"))) || (params.get(i).contains("Test") && params.get(i).contains("Store 1")) || params.get(i).contains("Chores"))
+            if ((params.get(i).contains("Monday") && params.get(i).contains("Morning")))
                 val = 1;
+            else if((params.get(i).contains("Mom") && params.get(i).contains("Dad")))
+                val = 2;
+            else if((params.get(i).contains("Ron")))// && !params.get(i).contains("Leslie")))
+                val = 3;
+            else if((params.get(i).contains("Work") && (params.get(i).contains("Jim") || params.get(i).contains("Dwight"))))
+                val = 4;
+            else if((params.get(i).contains("Test") && params.get(i).contains("Store 1")))
+                val = 5;
+            else if(params.get(i).contains("Chores"))
+                val = 6;
         }
         return val;
+    }
+    public static void printFactors(ArrayList<String> params)
+    {
+        for(int j = 0; j <  params.size(); j++)
+            System.out.format("%s ", params.get(j));
+        System.out.println();
     }
 }
