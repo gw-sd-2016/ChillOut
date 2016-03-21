@@ -3,7 +3,7 @@
     <color name="colorPrimary">#455b65</color>
     <color name="colorPrimaryDark">#1b1b1b</color>
     <color name="colorAccent">#1b1b1b</color>
-    <color name="colorCardInfo">#731b1b1b</color>
+    <color name="colorCardInfo">#73dedede</color>
     <color name="behindToolbar">#0d0d0d</color>
     <color name="colorBar">#21BEDB</color>
     <color name="colorStress">#db0c42</color>

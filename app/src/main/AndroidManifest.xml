@@ -39,12 +39,19 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
+
         <meta-data
             android:name="com.parse.APPLICATION_ID"
             android:value="nJPOm5SDvGW96lZm5PbZuzlmOyvyJN0hfnSoSojT" />
         <meta-data
             android:name="com.parse.CLIENT_KEY"
             android:value="d1jQXqyGIxj0Xc1dOyoVCXAylgtgym7DLhWWI5y8" />
+
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
     </application>
 
 </manifest>

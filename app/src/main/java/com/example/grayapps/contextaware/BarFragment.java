@@ -2,7 +2,6 @@ package com.example.grayapps.contextaware;
 
 import android.animation.PropertyValuesHolder;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -12,14 +11,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
 import com.db.chart.Tools;
 import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.BarSet;
 import com.db.chart.view.BarChartView;
 import com.db.chart.view.ChartView;
-import com.db.chart.view.HorizontalBarChartView;
 import com.db.chart.view.Tooltip;
 import com.db.chart.view.XController;
 import com.db.chart.view.YController;
@@ -27,19 +24,38 @@ import com.db.chart.view.animation.Animation;
 
 import java.util.ArrayList;
 
+/*
+ *  Copyright 2015 Diogo Bernardino
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 
 public class BarFragment extends Fragment {
 
 
-    /** First chart */
+    /**
+     * First chart
+     */
     private static BarChartView mChartOne;
     private ImageButton mPlayOne;
     private boolean mUpdateOne;
-    private final String[] mLabelsOne= {"1", "2", "3", "4", "5"};
-    private final float [][] mValuesOne = {{9.5f, 7.5f, 5.5f, 4.5f, 10f}, {6.5f, 3.5f, 3.5f, 2.5f, 7.5f}};
-    private static float[][] mNewValues = new float[2][5];
+    private final String[] mLabelsOne = {"Noise", "Movement"};
+    private float[][] mValuesOne = {{7.5f, 5.5f}};
+    private static float[] mNewValues = new float[2];
     private static float mMax;
-
+    private int mPos;
+    private String mStressColor = "#5e4072";
 
     public BarFragment() {
     }
@@ -48,9 +64,25 @@ public class BarFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setHasOptionsMenu(true);
-    }
 
+        if (getActivity().getIntent().hasExtra("position")) {
+            mPos = getActivity().getIntent().getExtras().getInt("position", -1);
+            if (mPos % 4 == 0)//stressed
+            {
+                mValuesOne[0][0] = 8.0f;
+                mStressColor = "#5e4072";//"#db0c42";
+            } else if (mPos % 3 == 0)//relaxed
+            {
+                mValuesOne[0][0] = 2.0f;
+                mStressColor = "#3ac298";//"#21BEDB";
+            } else if (mPos % 7 == 0)//relaxed
+            {
+                mValuesOne[0][0] = 6.5f;
+                mStressColor = "#21BEDB";//"#3ac298";
+            }
+            this.setHasOptionsMenu(true);
+        }
+    }
 
 
     @Override
@@ -62,33 +94,38 @@ public class BarFragment extends Fragment {
         // Init first chart
         mUpdateOne = true;
         mChartOne = (BarChartView) layout.findViewById(R.id.barchart1);
+
         showChart(0, mChartOne);
+        //showChart(1, mChartTwo, mPlayTwo);
+        //showChart(2, mChartThree, mPlayThree);
         return layout;
     }
 
 
     /**
      * Show a CardView chart
+     *
      * @param tag   Tag specifying which chart should be dismissed
-     * @param chart   Chart view
-     * @param btn    Play button
+     * @param chart Chart view
+     * @param btn   Play button
      */
-    private void showChart(final int tag, final ChartView chart){
-
-        Runnable action =  new Runnable() {
+    private void showChart(final int tag, final ChartView chart) {
+        // dismissPlay(btn);
+        Runnable action = new Runnable() {
             @Override
             public void run() {
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
-
+                        //showPlay(btn);
                     }
                 }, 500);
             }
         };
 
-        switch(tag) {
+        switch (tag) {
             case 0:
-                produceOne(chart, action); break;
+                produceOne(chart, action);
+                break;
             default:
         }
     }
@@ -96,85 +133,29 @@ public class BarFragment extends Fragment {
 
     /**
      * Update the values of a CardView chart
-     * @param tag   Tag specifying which chart should be dismissed
-     * @param chart   Chart view
-     * @param btn    Play button
-     */
-    private static void updateChart(final int tag, final ChartView chart, ImageButton btn){
-
-      //  dismissPlay(btn);
-
-        switch(tag){
-            case 0:
-                updateOne(chart); break;
-            default:
-        }
-    }
-
-
-    /**
-     * Dismiss a CardView chart
-     * @param tag   Tag specifying which chart should be dismissed
-     * @param chart   Chart view
-     * @param btn    Play button
-     */
-    private void dismissChart(final int tag, final ChartView chart){
-
-
-
-        Runnable action =  new Runnable() {
-            @Override
-            public void run() {
-                new Handler().postDelayed(new Runnable() {
-                    public void run() {
-                        showChart(tag, chart);
-                    }
-                }, 500);
-            }
-        };
-
-        switch(tag){
-            case 0:
-                dismissOne(chart, action); break;
-            default:
-        }
-    }
-
-
-    /**
-     * Show CardView play button
-     * @param btn    Play button
-     */
-    private void showPlay(ImageButton btn){
-        btn.setEnabled(true);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-            btn.animate().alpha(1).scaleX(1).scaleY(1);
-        else
-            btn.setVisibility(View.VISIBLE);
-    }
-
-
-    /**
-     * Dismiss CardView play button
-     * @param btn    Play button
-     */
-    private void dismissPlay(ImageButton btn){
-        btn.setEnabled(false);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-            btn.animate().alpha(0).scaleX(0).scaleY(0);
-        else
-            btn.setVisibility(View.INVISIBLE);
-    }
-
-
-
-    /**
      *
+     * @param tag   Tag specifying which chart should be dismissed
+     * @param chart Chart view
+     * @param btn   Play button
+     */
+    private static void updateChart(final int tag, final ChartView chart, ImageButton btn) {
+
+        // dismissPlay(btn);
+
+        switch (tag) {
+            case 0:
+                updateOne(chart);
+                break;
+            default:
+        }
+    }
+
+
+    /**
      * Chart 1
-     *
      */
 
-    public void produceOne(ChartView chart, Runnable action){
+    public void produceOne(ChartView chart, Runnable action) {
         BarChartView barChart = (BarChartView) chart;
 
         barChart.setOnEntryClickListener(new OnEntryClickListener() {
@@ -184,31 +165,47 @@ public class BarFragment extends Fragment {
             }
         });
 
+        // Tooltip tooltip = new Tooltip(getActivity(), R.layout.barchart_one_tooltip);
+        //if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+        //   tooltip.setEnterAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 1));
+        //   tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
+        // }
+        // barChart.setTooltips(tooltip);
+        mValuesOne[0][0] = Float.valueOf(String.valueOf(10 * Math.random()));
+
+        mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
         BarSet barSet = new BarSet(mLabelsOne, mValuesOne[0]);
-        barSet.setColor(Color.parseColor("#1b1b1b"));
-        barChart.addData(barSet);
+        barSet.setColor(Color.parseColor("#5e4072"));
+        for (int z = 0; z < mValuesOne[0].length; z++) {
+           /* */if (mValuesOne[0][z] < 2.5) {
+                barSet.getEntry(z).setColor(Color.parseColor("#2c93d0"));//blue
+            } else if (mValuesOne[0][z] < 5) {
+                barSet.getEntry(z).setColor(Color.parseColor("#3ac298"));//green
+            } /**/else if (mValuesOne[0][z] >= 7.5) {
+                barSet.getEntry(z).setColor(Color.parseColor("#db0c42"));//red
+            }
+            //default: purple
+        }
 
-        barSet = new BarSet(mLabelsOne, mValuesOne[1]);
-        barSet.setColor(Color.parseColor("#455b65"));
         barChart.addData(barSet);
-
-        barChart.setSetSpacing(Tools.fromDpToPx(-15));
         barChart.setBarSpacing(Tools.fromDpToPx(35));
-        barChart.setRoundCorners(Tools.fromDpToPx(2));
+
 
         barChart.setBorderSpacing(5)
+                .setAxisBorderValues(0, 10, 2)
                 .setYAxis(false)
                 .setXLabels(XController.LabelPosition.OUTSIDE)
                 .setYLabels(YController.LabelPosition.NONE)
-                .setLabelsColor(Color.parseColor("#86705c"))
-                .setAxisColor(Color.parseColor("#86705c"));
+                .setLabelsColor(Color.parseColor("#455b65"))
+                .setFontSize(28)
+                .setAxisColor(Color.parseColor("#1b1b1b"));
 
-        int[] order = {2, 1, 3, 0, 4};
+        int[] order = {0, 1};//, 0, 4};
         final Runnable auxAction = action;
         Runnable chartOneAction = new Runnable() {
             @Override
             public void run() {
-               // showTooltipOne();
+                //showTooltipOne();
                 auxAction.run();
             }
         };
@@ -219,18 +216,18 @@ public class BarFragment extends Fragment {
         ;
     }
 
-    public static void updateOne(ChartView chart){
+    public static void updateOne(ChartView chart) {
 
-     //   dismissTooltipOne();
-        float [][]newValues = mNewValues;
-        chart.updateValues(0, newValues[0]);
-        chart.updateValues(1, newValues[1]);
+        //dismissTooltipOne();
+        ///float[] newValues = //{{8.5f, 6.5f, 4.5f, 3.5f, 9f}, {5.5f, 3.0f, 3.0f, 2.5f, 7.5f}};
+        chart.updateValues(0, mNewValues);
+        //chart.updateValues(1, newValues[1]);
         chart.notifyDataUpdate();
     }
 
-    public void dismissOne(ChartView chart, Runnable action){
+    public void dismissOne(ChartView chart, Runnable action) {
 
-       // dismissTooltipOne();
+        dismissTooltipOne();
         int[] order = {0, 4, 1, 3, 2};
         chart.dismiss(new Animation()
                 .setOverlap(.5f, order)
@@ -238,19 +235,19 @@ public class BarFragment extends Fragment {
     }
 
 
-    private void showTooltipOne(){
+    private void showTooltipOne() {
 
         ArrayList<ArrayList<Rect>> areas = new ArrayList<>();
         areas.add(mChartOne.getEntriesArea(0));
-        areas.add(mChartOne.getEntriesArea(1));
+//        areas.add(mChartOne.getEntriesArea(1));
 
-        for(int i = 0; i < areas.size(); i++) {
+        for (int i = 0; i < areas.size(); i++) {
             for (int j = 0; j < areas.get(i).size(); j++) {
 
                 Tooltip tooltip = new Tooltip(getActivity(), R.layout.barchart_one_tooltip, R.id.value);
-                tooltip.prepare(areas.get(i).get(j), mValuesOne[i][j]);
+                tooltip.prepare(areas.get(i).get(j), mNewValues[i]);
 
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                     tooltip.setEnterAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 1));
                     tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
                 }
@@ -260,27 +257,17 @@ public class BarFragment extends Fragment {
 
     }
 
-
-    private void dismissTooltipOne(){
-        mChartOne.dismissAllTooltips();
-    }
-
-    public static void setValues(double[][] values)
-    {
+    public static void setValues(double[] values) {
         mMax = 0;
-        for(int i = 0; i < values[0].length; i++)
-        {
-            mNewValues[0][i] = Float.valueOf(String.valueOf(10 * values[0][i]));
-            mNewValues[1][i] = Float.valueOf(String.valueOf(10 * values[1][i]));
-            if(mNewValues[1][i] > mMax)
-            {
-                mMax = mNewValues[1][i] + 5;
-            }
-
+        for (int i = 0; i < values.length; i++) {
+            mNewValues[i] = Float.valueOf(String.valueOf(10 * values[i]));
         }
         updateChart(0, mChartOne, null);
     }
 
+    private static void dismissTooltipOne() {
+        mChartOne.dismissAllTooltips();
+    }
 
 
 }

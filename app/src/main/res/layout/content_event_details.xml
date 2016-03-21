@@ -19,7 +19,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        card_view:cardElevation="0dp"
+        card_view:cardElevation="8dp"
         card_view:cardCornerRadius="@dimen/card_radius"
         android:layout_marginLeft="@dimen/card_margin"
         android:layout_marginEnd="@dimen/card_margin"
@@ -27,59 +27,78 @@
         android:layout_marginRight="@dimen/card_margin"
         android:layout_below="@+id/container"
         android:background="@color/colorCardInfo"
-        card_view:cardBackgroundColor="@color/colorCardInfo">
+        card_view:cardBackgroundColor="@color/textPrimary">
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:layout_margin="@dimen/activity_horizontal_margin">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/eventTime"
-        android:layout_centerHorizontal="true"
-        android:textSize="22sp"
-        android:layout_marginBottom="10dp"
-        android:textColor="@color/textPrimary"
-        android:fontFamily="sans-serif-light"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:src="@drawable/ic_access_time_black_24dp"
+                android:alpha="0.65"
+                android:id="@+id/timeIcon" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Location:"
-        android:layout_alignParentLeft="true"
-        android:id="@+id/locationText"
-        android:layout_below="@+id/eventTitle"
-        android:textColor="@color/textAccent"
-        android:fontFamily="sans-serif-light"
-        android:textSize="16sp"/>
+        android:id="@+id/eventDate"
+        android:textSize="18sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:paddingStart="20dp"
+        android:layout_toEndOf="@id/timeIcon"
+        android:layout_alignBaseline="@id/timeIcon"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/eventTime"
+                android:textSize="18sp"
+                android:textColor="@color/colorPrimaryDark"
+                android:paddingStart="20dp"
+                android:layout_below="@id/eventDate"
+                android:layout_alignStart="@id/eventDate"
+                />
 
-    <TextView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/locationText"
-        android:id="@+id/eventLocation"
-        android:textColor="@color/textPrimary"
-        android:textSize="22sp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Guests:"
-        android:id="@+id/attendeesText"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/eventLocation"
-        android:textColor="@color/textAccent"
-        android:textSize="16sp"
-        android:fontFamily="sans-serif-light"/>
+        android:layout_below="@+id/eventTime"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:src="@drawable/ic_place_black_24dp"
+        android:alpha="0.65"
+        android:id="@+id/locationIcon" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/eventLocation"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="18sp"
+        android:paddingStart="20dp"
+        android:layout_above="@+id/attendeesIcon"
+        android:layout_alignStart="@+id/attendeesFragment" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:id="@+id/attendeesIcon"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/locationIcon"
+        android:src="@drawable/ic_people_black_24dp"
+        android:alpha="0.65"/>
+
 
     <fragment
         android:name="com.example.grayapps.contextaware.EventAttendeesListFragment"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/attendeesFragment"
-        android:layout_below="@id/attendeesText" />
+        android:layout_alignTop="@id/attendeesIcon"
+        android:layout_toEndOf="@id/attendeesIcon" />
 
     </RelativeLayout>
     </android.support.v7.widget.CardView>

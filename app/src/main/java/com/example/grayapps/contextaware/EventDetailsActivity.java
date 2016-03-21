@@ -5,16 +5,24 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class EventDetailsActivity extends AppCompatActivity implements EventAttendeesListFragment.OnFragmentInteractionListener {
 
+    private static SimpleDateFormat mSimpleDateFormat;
+    private static SimpleDateFormat mSimpleTimeFormat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,8 +33,18 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         editor.putLong("lastAccessedEventId", eventId);
         editor.commit();
         setContentView(R.layout.activity_event_details);
-
+        mSimpleDateFormat = new SimpleDateFormat("EEEE, MM/dd/yy");
+        mSimpleTimeFormat = new SimpleDateFormat("h:mma");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
         /*if(position >= 0)
         {
             if(position % 4 == 0)
@@ -36,7 +54,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         setSupportActionBar(toolbar);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new BarGraphFragment())
+                .replace(R.id.container, new BarFragment())
                 .commit();
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
@@ -66,6 +84,13 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
             TextView eventLocation = (TextView) findViewById(R.id.eventLocation);
             setTitle(cursor.getString(0));
             eventLocation.setText(cursor.getString(1));
+            TextView eventDate = (TextView) findViewById(R.id.eventDate);
+            String timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(2)));
+            eventDate.setText(timeAsString);
+            TextView eventTime = (TextView) findViewById(R.id.eventTime);
+            String fullTime = mSimpleTimeFormat.format(new Date(cursor.getLong(2))) + " - ";
+            fullTime += mSimpleTimeFormat.format(new Date(cursor.getLong(3)));
+            eventTime.setText(fullTime);
         }
 
 

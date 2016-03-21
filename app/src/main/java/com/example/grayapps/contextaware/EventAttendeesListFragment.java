@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 /**
@@ -207,7 +208,7 @@ public class EventAttendeesListFragment extends ListFragment implements SearchVi
         Log.d("Attendee Count", "" + data.getCount());
         if(data.getCount() == 0)
         {
-            TextView guestText = (TextView) getActivity().findViewById(R.id.attendeesText);
+            ImageView guestText = (ImageView) getActivity().findViewById(R.id.attendeesIcon);
             guestText.setVisibility(View.INVISIBLE);
         }
         mAdapter.swapCursor(data);
