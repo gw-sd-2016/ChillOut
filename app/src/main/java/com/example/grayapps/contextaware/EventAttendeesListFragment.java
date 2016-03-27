@@ -209,7 +209,7 @@ public class EventAttendeesListFragment extends ListFragment implements SearchVi
         if(data.getCount() == 0)
         {
             ImageView guestText = (ImageView) getActivity().findViewById(R.id.attendeesIcon);
-            guestText.setVisibility(View.INVISIBLE);
+            guestText.setVisibility(View.GONE);
         }
         mAdapter.swapCursor(data);
     }

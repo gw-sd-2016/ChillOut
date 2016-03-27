@@ -15,6 +15,7 @@
         android:layout_marginStart="@dimen/card_margin"
         android:layout_marginTop="@dimen/activity_horizontal_margin"
         android:layout_marginBottom="@dimen/activity_horizontal_margin"
+        android:id="@+id/cardContent"
         card_view:cardElevation="8dp"
         card_view:cardCornerRadius="@dimen/card_radius"
         card_view:cardBackgroundColor="@color/textPrimary">

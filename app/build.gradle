@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.grayapps.contextaware"
-        minSdkVersion 17
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -38,4 +38,7 @@ dependencies {
     compile 'com.android.support:cardview-v7:21.0.+'
     compile 'com.android.support:recyclerview-v7:21.0.+'
     compile files('libs/microsoft-band-1.3.10929.1.jar')
+    compile('com.mikepenz:materialdrawer:5.1.6@aar') {
+        transitive = true
+    }
 }

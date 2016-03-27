@@ -270,13 +270,13 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         {
             View rowView = super.getView(position,convertView, parent);
             CardView card = (CardView) rowView.findViewById(R.id.cardView);
-            if(position % 4 == 0)
+            if(position % 3 == 0)
                 card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
-            else if(position % 3 == 0)
+            else if(position % 5 == 0)
             {
                 card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
             }
-            else if(position % 7 == 0)
+            else if(position % 7 == 0 || position % 4 == 0)
             {
                 card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAnxious));
             }
@@ -302,9 +302,16 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             TextView eventLocation = (TextView) rowView.findViewById(R.id.eventLocation);
             TextView eventStartTime = (TextView) rowView.findViewById(R.id.eventStartTime);
             TextView eventEndTime = (TextView) rowView.findViewById(R.id.eventEndTime);
-
             eventTitle.setText(cursor.getString(1));
-            eventLocation.setText(cursor.getString(2));
+            if(cursor.getString(2) != null && cursor.getString(2).length() > 0)
+            {
+                eventLocation.setVisibility(View.VISIBLE);
+                eventLocation.setText(cursor.getString(2));
+            }
+            else
+            {
+                eventLocation.setVisibility(View.GONE);
+            }
             String timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(3)));
             eventStartTime.setText(timeAsString + " - ");
             timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(4)));

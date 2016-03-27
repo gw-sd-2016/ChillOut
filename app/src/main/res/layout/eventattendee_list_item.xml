@@ -9,7 +9,8 @@
         android:id="@+id/attendeeName"
         android:textSize="18sp"
         android:textColor="@color/colorPrimaryDark"
-        android:paddingStart="20dp"/>
+        android:paddingStart="20dp"
+        android:fontFamily="sans-serif-light"/>
 
 
 </RelativeLayout>

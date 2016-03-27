@@ -67,18 +67,18 @@ public class BarFragment extends Fragment {
 
         if (getActivity().getIntent().hasExtra("position")) {
             mPos = getActivity().getIntent().getExtras().getInt("position", -1);
-            if (mPos % 4 == 0)//stressed
+            if (mPos % 3 == 0)//stressed
             {
                 mValuesOne[0][0] = 8.0f;
-                mStressColor = "#5e4072";//"#db0c42";
-            } else if (mPos % 3 == 0)//relaxed
+                mStressColor = "#db0c42";
+            } else if (mPos % 5 == 0)//relaxed
             {
                 mValuesOne[0][0] = 2.0f;
-                mStressColor = "#3ac298";//"#21BEDB";
-            } else if (mPos % 7 == 0)//relaxed
+                mStressColor = "#2c93d0";
+            } else if (mPos % 7 == 0 || mPos % 4 == 0)//relaxed
             {
                 mValuesOne[0][0] = 6.5f;
-                mStressColor = "#21BEDB";//"#3ac298";
+                mStressColor = "#3ac298";
             }
             this.setHasOptionsMenu(true);
         }
@@ -175,17 +175,17 @@ public class BarFragment extends Fragment {
 
         mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
         BarSet barSet = new BarSet(mLabelsOne, mValuesOne[0]);
-        barSet.setColor(Color.parseColor("#5e4072"));
-        for (int z = 0; z < mValuesOne[0].length; z++) {
-           /* */if (mValuesOne[0][z] < 2.5) {
+         barSet.setColor(Color.parseColor(mStressColor));
+       /*  for (int z = 0; z < mValuesOne[0].length; z++) {
+          if (mValuesOne[0][z] < 2.5) {
                 barSet.getEntry(z).setColor(Color.parseColor("#2c93d0"));//blue
             } else if (mValuesOne[0][z] < 5) {
                 barSet.getEntry(z).setColor(Color.parseColor("#3ac298"));//green
-            } /**/else if (mValuesOne[0][z] >= 7.5) {
+            } else if (mValuesOne[0][z] >= 7.5) {
                 barSet.getEntry(z).setColor(Color.parseColor("#db0c42"));//red
             }
             //default: purple
-        }
+        }*//**/
 
         barChart.addData(barSet);
         barChart.setBarSpacing(Tools.fromDpToPx(35));

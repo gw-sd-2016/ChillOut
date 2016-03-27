@@ -2,11 +2,13 @@ package com.example.grayapps.contextaware;
 
 import android.animation.PropertyValuesHolder;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,7 @@ import android.widget.ImageButton;
 import com.db.chart.Tools;
 import com.db.chart.listener.OnEntryClickListener;
 import com.db.chart.model.BarSet;
+import com.db.chart.view.AxisController;
 import com.db.chart.view.BarChartView;
 import com.db.chart.view.ChartView;
 import com.db.chart.view.Tooltip;
@@ -48,9 +51,9 @@ public class BarGraphFragment extends Fragment {
     private static BarChartView mChartOne;
     private ImageButton mPlayOne;
     private boolean mUpdateOne;
-    private final String[] mLabelsOne= {"Stress", "Noise", "Movement"};
-    private float [][] mValuesOne = {{5.0f, 7.5f, 5.5f}};
-    private static float[] mNewValues = new float[3];
+    private final String[] mLabelsOne= {"sMetric", "Stress", "Noise", "Move"};
+    private float [][] mValuesOne = {{91.0f, 50.0f, 75.0f, 55.0f}};
+    private static float[] mNewValues = new float[4];
     private static float mMax;
     private int mPos;
     private String mStressColor = "#5e4072";
@@ -65,7 +68,7 @@ public class BarGraphFragment extends Fragment {
 
         if(getActivity().getIntent().hasExtra("position"))
         {
-        mPos = getActivity().getIntent().getExtras().getInt("position",-1);
+       /* mPos = getActivity().getIntent().getExtras().getInt("position",-1);
         if(mPos % 4 == 0)//stressed
         {
             mValuesOne[0][0] = 8.0f;
@@ -80,7 +83,7 @@ public class BarGraphFragment extends Fragment {
         {
             mValuesOne[0][0] = 6.5f;
             mStressColor = "#3ac298";
-        }
+        }*/
         this.setHasOptionsMenu(true);
         }
     }
@@ -97,6 +100,8 @@ public class BarGraphFragment extends Fragment {
         mUpdateOne = true;
         mChartOne = (BarChartView) layout.findViewById(R.id.barchart1);
 
+        CardView barCard = (CardView) layout.findViewById(R.id.cardContent);
+        barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorPrimaryDark)));
         showChart(0, mChartOne);
         //showChart(1, mChartTwo, mPlayTwo);
         //showChart(2, mChartThree, mPlayThree);
@@ -172,24 +177,31 @@ public class BarGraphFragment extends Fragment {
          //   tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
        // }
        // barChart.setTooltips(tooltip);
-        mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
-        mValuesOne[0][2] = Float.valueOf(String.valueOf(10 * Math.random()));
+        //mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
+        //mValuesOne[0][2] = Float.valueOf(String.valueOf(10 * Math.random()));
         BarSet barSet = new BarSet(mLabelsOne, mValuesOne[0]);
         barSet.setColor(Color.parseColor(mStressColor));
         barChart.addData(barSet);
         barChart.setBarSpacing(Tools.fromDpToPx(35));
 
+        barSet.getEntry(0).setColor(Color.parseColor(getResources().getString(R.color.colorNeutral)));
+        barSet.getEntry(1).setColor(Color.parseColor(getResources().getString(R.color.colorStress)));
+        barSet.getEntry(2).setColor(Color.parseColor(getResources().getString(R.color.colorNoise)));
+        barSet.getEntry(3).setColor(Color.parseColor(getResources().getString(R.color.colorAnxious)));
 
+        Paint gridColor = new Paint();
+        gridColor.setColor(Color.parseColor(getResources().getString(R.color.textAccent)));
         barChart.setBorderSpacing(5)
-                .setAxisBorderValues(0, 10, 2)
-                .setYAxis(false)
+                .setAxisBorderValues(0, 100, 20)
+                .setYAxis(true)
                 .setXLabels(XController.LabelPosition.OUTSIDE)
-                .setYLabels(YController.LabelPosition.NONE)
-                .setLabelsColor(Color.parseColor("#455b65"))
-                .setFontSize(28)
-                .setAxisColor(Color.parseColor("#1b1b1b"));
+                .setYLabels(YController.LabelPosition.OUTSIDE)
+                .setGrid(ChartView.GridType.HORIZONTAL, 10, 1, gridColor)
+                .setLabelsColor(Color.parseColor(getResources().getString(R.color.textPrimary)))
+                .setFontSize(24)
+                .setAxisColor(Color.parseColor(getResources().getString(R.color.textAccent)));
 
-        int[] order = {1, 0, 2};//, 0, 4};
+        int[] order = {3, 1, 0, 2};//, 0, 4};
         final Runnable auxAction = action;
         Runnable chartOneAction = new Runnable() {
             @Override
@@ -250,7 +262,7 @@ public class BarGraphFragment extends Fragment {
         mMax = 0;
         for(int i = 0; i < values.length; i++)
         {
-            mNewValues[i] = Float.valueOf(String.valueOf(10 * values[i]));
+            mNewValues[i] = Float.valueOf(String.valueOf(Math.min(Double.valueOf(String.valueOf(100 * values[i])), 100.0)));
         }
         updateChart(0, mChartOne, null);
     }

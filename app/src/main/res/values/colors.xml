@@ -10,6 +10,10 @@
     <color name="colorAnxious">#3ac298</color>
     <color name="colorNeutral">#5e4072</color>
     <color name="colorNoise">#2c93d0</color>
+    <color name="colorStressDark">#940a2e</color>
+    <color name="colorAnxiousDark">#206953</color>
+    <color name="colorNeutralDark">#483158</color>
+    <color name="colorNoiseDark">#1e6996</color>
     <color name="colorMove">#DCB869</color>
     <color name="textPrimary">#fffdfdfd</color>
     <color name="textAccent">#a0fdfdfd</color>

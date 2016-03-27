@@ -1,20 +1,30 @@
 package com.example.grayapps.contextaware;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.DrawerBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,15 +46,30 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         mSimpleDateFormat = new SimpleDateFormat("EEEE, MM/dd/yy");
         mSimpleTimeFormat = new SimpleDateFormat("h:mma");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-
+       // setSupportActionBar(toolbar);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+               launchPrediction(view);
             }
         });
+
+        /** Drawer begins*/
+        Drawer result = new DrawerBuilder()
+                .withActivity(this)
+                .withTranslucentStatusBar(true)
+                .withToolbar(toolbar)
+                .withActionBarDrawerToggle(true)
+                .addDrawerItems(
+                        //pass your items here
+                )
+                .build();
+
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        result.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+        /** Drawer ends */
+
         /*if(position >= 0)
         {
             if(position % 4 == 0)
@@ -68,14 +93,34 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         Cursor cursor = getContentResolver().query(uri, proj, CalendarContract.Events._ID + " = ?", new String[]{String.valueOf(eventId)}, null);
         if (position >= 0) {
             RelativeLayout contentLayout = (RelativeLayout) findViewById(R.id.eventContent);
-            if (position % 4 == 0) {
-                contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStress));
-            } else if (position % 3 == 0) {
-                contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNoise));
-            } else if (position % 7 == 0) {
-                contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAnxious));
+            contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.textAccent));
+            Window w = getWindow();
+            FrameLayout backgroundColor = (FrameLayout) findViewById(R.id.backgroundFrame);
+            if (position % 3 == 0) {
+             //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStress));
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorStressDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorStress));
+
+            } else if (position % 5 == 0 ) {
+            //    contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNoise));
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNoiseDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNoise));
+            } else if (position % 7 == 0 || position % 4 == 0) {
+             //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAnxious));
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorAnxious))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorAnxiousDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorAnxious))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorAnxious));
             } else {
-                contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutral));
+             //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutral));
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNeutral))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNeutralDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNeutral))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNeutral));
             }
 
         }
@@ -83,7 +128,16 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         if (cursor.moveToFirst()) {
             TextView eventLocation = (TextView) findViewById(R.id.eventLocation);
             setTitle(cursor.getString(0));
-            eventLocation.setText(cursor.getString(1));
+            if(cursor.getString(1) != null && cursor.getString(1).length() > 0)
+            {
+                eventLocation.setText(cursor.getString(1));
+            }
+            else
+            {
+                eventLocation.setVisibility(View.GONE);
+                ImageView locationIcon = (ImageView) findViewById(R.id.locationIcon);
+                locationIcon.setVisibility(View.GONE);
+            }
             TextView eventDate = (TextView) findViewById(R.id.eventDate);
             String timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(2)));
             eventDate.setText(timeAsString);
@@ -93,7 +147,6 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
             eventTime.setText(fullTime);
         }
 
-
     }
 
     @Override
@@ -101,4 +154,31 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         Log.d("FragmentID", id);
     }
 
+    private void launchPrediction(View view)
+    {
+        int notificationId = 001;
+
+        // Gets an instance of the NotificationManager service
+        NotificationManager notifyMgr =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        Intent resultIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_stat_group_2)
+                        .setContentTitle("Upcoming Stressful Event")
+                        .setContentText("Job Performance Review")
+                        .setColor(Color.parseColor(getResources().getString(R.color.colorStress)));
+
+        builder.setContentIntent(resultPendingIntent);
+        builder.setAutoCancel(true);
+
+        // Builds the notification and issues it.
+        notifyMgr.notify(notificationId, builder.build());
+
+
+    }
 }
