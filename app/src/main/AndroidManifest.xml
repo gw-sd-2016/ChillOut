@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.grayapps.contextaware" >
+    package="com.example.grayapps.contextaware">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,16 +11,17 @@
     <uses-permission android:name="com.microsoft.band.service.access.BIND_BAND_SERVICE" />
 
     <application
+        android:name="com.example.grayapps.contextaware.BreatheApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".CalendarActivity"
             android:label="@string/title_activity_calendar"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,14 +32,12 @@
             android:name=".EventDetailsActivity"
             android:label="@string/title_activity_event_details"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".LiveResultsActivity"
             android:label="@string/title_activity_live_results"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <meta-data
             android:name="com.parse.APPLICATION_ID"
@@ -51,14 +50,23 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" >
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <service
             android:name=".DataRecordingService"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
+
+        <receiver
+            android:name=".CalendarEventChangeReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PROVIDER_CHANGED" />
+                <data android:scheme="content" />
+                <data android:host="com.android.calendar" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

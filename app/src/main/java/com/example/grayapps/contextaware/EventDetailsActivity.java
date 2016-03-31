@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.db.chart.model.Bar;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 
@@ -33,14 +34,29 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
 
     private static SimpleDateFormat mSimpleDateFormat;
     private static SimpleDateFormat mSimpleTimeFormat;
+    double mNoise = -1;
+    double mMovement = -1;
+    double mStress = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
-        long eventId = getIntent().getLongExtra("eventId", -1);
+        String eventId = getIntent().getStringExtra("eventId");
         int position = getIntent().getIntExtra("position", -1);
-        editor.putLong("lastAccessedEventId", eventId);
+        if (getIntent().hasExtra("noise"))
+        {
+            mNoise = getIntent().getDoubleExtra("noise", -1);
+        }
+        if (getIntent().hasExtra("movement"))
+        {
+            mMovement = getIntent().getDoubleExtra("movement", -1);
+        }
+        if (getIntent().hasExtra("stress"))
+        {
+            mStress = getIntent().getDoubleExtra("stress", -1);
+        }
+        editor.putLong("lastAccessedEventId", Long.valueOf(eventId));
         editor.commit();
         setContentView(R.layout.activity_event_details);
         mSimpleDateFormat = new SimpleDateFormat("EEEE, MM/dd/yy");
@@ -78,8 +94,9 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
         setSupportActionBar(toolbar);
 
+        BarFragment chart = new BarFragment();
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, new BarFragment())
+                .replace(R.id.container, chart)
                 .commit();
 
         Uri uri = CalendarContract.Events.CONTENT_URI;
@@ -90,7 +107,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                         CalendarContract.Events.DTSTART,
                         CalendarContract.Events.DTEND};
 
-        Cursor cursor = getContentResolver().query(uri, proj, CalendarContract.Events._ID + " = ?", new String[]{String.valueOf(eventId)}, null);
+        Cursor cursor = getContentResolver().query(uri, proj, CalendarContract.Events._ID + " = ?", new String[]{eventId}, null);
         if (position >= 0) {
             RelativeLayout contentLayout = (RelativeLayout) findViewById(R.id.eventContent);
             contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.textAccent));
@@ -121,6 +138,21 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNeutralDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNeutral))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNeutral));
+            }
+
+            if(mStress == 2)
+            {
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorStressDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorStress));
+            }
+            else if(mStress == 1)
+            {
+                toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
+                w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNoiseDark)));
+                backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
+                fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNoise));
             }
 
         }

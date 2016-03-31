@@ -135,6 +135,7 @@ public class LiveResultsActivity extends AppCompatActivity {
                                 startService(intent);
                                 LocalBroadcastManager.getInstance(params[0].get()).registerReceiver(mReceiver, new IntentFilter(DataRecordingService.STRESS_RESULT));
                                 LocalBroadcastManager.getInstance(params[0].get()).registerReceiver(mReceiver, new IntentFilter(DataRecordingService.STRESS_PAUSE));
+
                             }
 
                         });

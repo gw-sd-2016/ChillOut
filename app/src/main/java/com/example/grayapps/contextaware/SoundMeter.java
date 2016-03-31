@@ -67,6 +67,7 @@ public class SoundMeter {
     public void stop() {
         if (mRecorder != null) {
             mRecorder.stop();
+            mRecorder.reset();
             mRecorder.release();
             mRecorder = null;
         }

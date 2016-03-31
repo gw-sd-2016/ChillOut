@@ -1,5 +1,6 @@
 package com.example.grayapps.contextaware;
 
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -7,13 +8,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.microsoft.band.BandClient;
 import com.microsoft.band.BandClientManager;
 import com.microsoft.band.BandException;
@@ -29,21 +33,31 @@ import com.microsoft.band.sensors.BandPedometerEventListener;
 import com.microsoft.band.sensors.BandRRIntervalEvent;
 import com.microsoft.band.sensors.BandRRIntervalEventListener;
 import com.microsoft.band.sensors.SampleRate;
+import com.parse.GetCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
+import org.json.JSONObject;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class DataRecordingService extends Service {
+public class DataRecordingService extends Service
+{
 
     static final public String STRESS_RESULT = "com.example.grayapps.contextaware.DataRecordingService.UI_UPDATE";
     static final public String STRESS_START = "com.example.grayapps.contextaware.DataRecordingService.START_FOREGROUND";
     static final public String STRESS_PAUSE = "com.example.grayapps.contextaware.DataRecordingService.PAUSE_FOREGROUND";
+    static final public String STRESS_END = "com.example.grayapps.contextaware.DataRecordingService.END_FOREGROUND";
     static final public String STRESS_RESUME = "com.example.grayapps.contextaware.DataRecordingService.RESUME_FOREGROUND";
+    static final public int START_RECORDING = 77;
+    static final public int STOP_RECORDING = 99;
 
-    private LocalBroadcastManager mBroadcaster = LocalBroadcastManager.getInstance(this);
+    private LocalBroadcastManager mBroadcaster;
     private static BandClient client = null;
     private static DenseMatrix64F mIdentityMatrix;
     private static KalmanFilter mKF;
@@ -87,35 +101,57 @@ public class DataRecordingService extends Service {
     private static String mTimerText = "0";
     private static Timer mTimer;
     private int mStartId;
+    private static NotificationCompat.Builder mNotificationBuilder;
+    private static NotificationManager mNotificationManager;
 
 
     public DataRecordingService() {
     }
 
-    private final IBinder mBinder = new StressDataBinder();
+    class DataRecordingServiceHandler extends Handler
+    {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what)
+            {
+                case STOP_RECORDING:
+                    stopRecording(true, "");
+                    break;
+                case START_RECORDING:
+                    Toast.makeText(getApplicationContext(), "hello!", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
+    private final Messenger mMessenger = new Messenger(new DataRecordingServiceHandler());
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-    public class StressDataBinder extends Binder {
-        DataRecordingService getService() {
-            return DataRecordingService.this;
-        }
+        return mMessenger.getBinder();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // The service is starting, due to a call to startService()
-        if (intent.getAction().equals(STRESS_START)) {
+        mBroadcaster = LocalBroadcastManager.getInstance(this);
+        Log.d("RecordingService", "Triggered " + mStartId);
+        if (intent.getAction().equals(STRESS_START))
+        {
 
             mStartId = startId;
             Intent pauseIntent = new Intent(this, DataRecordingService.class);
             pauseIntent.setAction(STRESS_PAUSE);
             PendingIntent pausePendingIntent = PendingIntent.getService(this, 0, pauseIntent, 0);
 
-            NotificationCompat.Builder builder =
+            Intent resultIntent = new Intent(this, LiveResultsActivity.class);
+            PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationBuilder =
                     new NotificationCompat.Builder(this)
                             .setSmallIcon(R.drawable.ic_stat_group_2)
                             .setContentTitle("Breathe is running")
@@ -124,29 +160,20 @@ public class DataRecordingService extends Service {
                             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Cancel", pausePendingIntent);
 
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-            builder.setContentIntent(pendingIntent);
-            startForeground(1, builder.build());
+            mNotificationBuilder.setContentIntent(pendingIntent);
+            mNotificationBuilder.setContentIntent(resultPendingIntent);
+            //.setAutoCancel(true);
+
+            startForeground(1234, mNotificationBuilder.build());
             setup();
-        } else if (intent.getAction().equals(STRESS_PAUSE)) {
-            try {
-                if (getConnectedBandClient()) {
-                    client.getSensorManager().unregisterRRIntervalEventListener(mRRIntervalEventListener);
-                    client.getSensorManager().unregisterHeartRateEventListener(mHeartRateEventListener);
-                    client.getSensorManager().unregisterAccelerometerEventListener(mAccelerometerEventListener);
-                    client.getSensorManager().unregisterPedometerEventListener(mStepEventListener);
-                }
-            } catch (InterruptedException e) {
-            } catch (BandException e) {
-            }
-            mSensor.stop();
-            mTimer.cancel();
-            Intent broadcastIntent = new Intent(STRESS_PAUSE);
-            mBroadcaster.sendBroadcastSync(broadcastIntent);
-            stopForeground(true);
-            stopSelf();
+        } else if (intent.getAction().equals(STRESS_PAUSE))
+        {
+            stopRecording(false, "");
 
-        } else if (intent.getAction().equals(STRESS_RESUME)) {
-
+        } else if (intent.getAction().equals(STRESS_END))
+        {
+            Log.d("EndRecording","YUP");
+            stopRecording(true, intent.getStringExtra("eventId"));
         }
         super.onStartCommand(intent, flags, startId);
         return START_NOT_STICKY;
@@ -154,14 +181,17 @@ public class DataRecordingService extends Service {
 
     @Override
     public void onDestroy() {
-        if (SoundOutlierDetector.hasStarted()) {
+        if (SoundOutlierDetector.hasStarted())
+        {
             SharedPreferences.Editor edit = getSharedPreferences("userData", MODE_PRIVATE).edit();
-            for (int i = 0; i < SoundOutlierDetector.getLength(); i++) {
+            for (int i = 0; i < SoundOutlierDetector.getLength(); i++)
+            {
                 edit.putFloat("max" + i, (float) SoundOutlierDetector.getMax(i));
                 edit.putFloat("min" + i, (float) SoundOutlierDetector.getMin(i));
             }
             double[] lookback = SoundOutlierDetector.getLookback();
-            for (int i = 0; i < SoundOutlierDetector.getRange(); i++) {
+            for (int i = 0; i < SoundOutlierDetector.getRange(); i++)
+            {
                 edit.putFloat("lookback" + i, (float) lookback[i]);
             }
             edit.commit();
@@ -235,14 +265,18 @@ public class DataRecordingService extends Service {
         mStates = new int[SoundOutlierDetector.getLength() - 1];
         mChanges = new int[SoundOutlierDetector.getLength() - 1];
         SharedPreferences prefs = mContext.getSharedPreferences("userData", MODE_PRIVATE);
-        if (prefs.contains("max0")) {
-            for (int i = 0; i < SoundOutlierDetector.getLength(); i++) {
+        if (prefs.contains("max0"))
+        {
+            for (int i = 0; i < SoundOutlierDetector.getLength(); i++)
+            {
                 double max = prefs.getFloat("max" + i, -1);
                 double min = prefs.getFloat("min" + i, -1);
-                if (max >= 0) {
+                if (max >= 0)
+                {
                     SoundOutlierDetector.setMax(max, i);
                 }
-                if (min >= 0) {
+                if (min >= 0)
+                {
                     SoundOutlierDetector.setMin(min, i);
                 }
             }
@@ -251,8 +285,10 @@ public class DataRecordingService extends Service {
             for (int i = 0; i < SoundOutlierDetector.getRange(); i++)
                 lookback[i] = prefs.getFloat("lookback" + i, 0);
 
-            for (int i = 0; i < SoundOutlierDetector.getRange(); i++) {
-                if (lookback[i] >= 0) {
+            for (int i = 0; i < SoundOutlierDetector.getRange(); i++)
+            {
+                if (lookback[i] >= 0)
+                {
                     SoundOutlierDetector.setLocationInLookback(i, lookback[i]);
                 }
             }
@@ -266,7 +302,8 @@ public class DataRecordingService extends Service {
         mTimer.scheduleAtFixedRate(myTimerTask, 0, 2000);
     }
 
-    private class SoundTask extends TimerTask {
+    private class SoundTask extends TimerTask
+    {
         private int mTimesRun = 0;
         private int mLouder = 0;
         private int mQuieter = 0;
@@ -279,28 +316,36 @@ public class DataRecordingService extends Service {
             double[][] ranges = mDetector.update(val[0]);
             count++;
 
-            for (int i = 0; i < mStates.length; i++) {
-                if (ranges[0][i] > ranges[0][i + 1] && ranges[1][i] > ranges[1][i + 1]) {
+            for (int i = 0; i < mStates.length; i++)
+            {
+                if (ranges[0][i] > ranges[0][i + 1] && ranges[1][i] > ranges[1][i + 1])
+                {
 
-                    if (mStates[i] < 1) {
+                    if (mStates[i] < 1)
+                    {
                         mStates[i] = mStates[i];
                     }
                     mChanges[i] = 4;//louder
                     mStates[i]++;
-                } else if (ranges[0][i] < ranges[0][i + 1] && ranges[1][i] < ranges[1][i + 1]) {
+                } else if (ranges[0][i] < ranges[0][i + 1] && ranges[1][i] < ranges[1][i + 1])
+                {
 
-                    if (mStates[i] < 1) {
+                    if (mStates[i] < 1)
+                    {
                         mStates[i] = mStates[i];
 
                     }
                     mChanges[i] = 1;//quieter
                     mStates[i]++;
-                } else {
-                    if (mChanges[i] == 1 || mChanges[i] == 3) {
+                } else
+                {
+                    if (mChanges[i] == 1 || mChanges[i] == 3)
+                    {
                         if (mChanges[i] == 1)
                             mStates[i] = 0;
                         mChanges[i] = 3;//getting louder
-                    } else {
+                    } else
+                    {
                         if (mChanges[i] == 4)
                             mStates[i] = 0;
                         mChanges[i] = 2;//getting quieter
@@ -309,8 +354,10 @@ public class DataRecordingService extends Service {
                 }
             }
 
-            for (int i = 0; i < mChanges.length; i++) {
-                switch (mChanges[i]) {
+            for (int i = 0; i < mChanges.length; i++)
+            {
+                switch (mChanges[i])
+                {
                     case 1:
                         mQuieter += 200 * mWeights[i];
                         break;
@@ -323,14 +370,17 @@ public class DataRecordingService extends Service {
             mMostRecent[2] = (((double) mLouder + 1.0) / (((double) mLouder + mQuieter + 1.0)));
 
             mRanges = ranges;
-            if (SoundOutlierDetector.hasStarted()) {
+            if (SoundOutlierDetector.hasStarted())
+            {
                 SharedPreferences.Editor edit = getSharedPreferences("userData", MODE_PRIVATE).edit();
-                for (int i = 0; i < SoundOutlierDetector.getLength(); i++) {
+                for (int i = 0; i < SoundOutlierDetector.getLength(); i++)
+                {
                     edit.putFloat("max" + i, (float) SoundOutlierDetector.getMax(i));
                     edit.putFloat("min" + i, (float) SoundOutlierDetector.getMin(i));
                 }
                 double[] lookback = SoundOutlierDetector.getLookback();
-                for (int i = 0; i < SoundOutlierDetector.getRange(); i++) {
+                for (int i = 0; i < SoundOutlierDetector.getRange(); i++)
+                {
                     edit.putFloat("lookback" + i, (float) lookback[i]);
                 }
                 edit.commit();
@@ -340,10 +390,12 @@ public class DataRecordingService extends Service {
 
     }
 
-    private BandRRIntervalEventListener mRRIntervalEventListener = new BandRRIntervalEventListener() {
+    private BandRRIntervalEventListener mRRIntervalEventListener = new BandRRIntervalEventListener()
+    {
         @Override
         public void onBandRRIntervalChanged(final BandRRIntervalEvent event) {
-            if (event != null) {
+            if (event != null)
+            {
                 double temp = event.getInterval();
                 mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
 
@@ -359,11 +411,14 @@ public class DataRecordingService extends Service {
                 prevRR[3] = 200 * temp;
 
                 boolean isDip = false;
-                if (!mDipping && prevRR[2] > prevRR[3]) {
+                if (!mDipping && prevRR[2] > prevRR[3])
+                {
                     mDipping = true;
                     mStartDip = prevRR[2];
-                } else if (mDipping && prevRR[2] < prevRR[3]) {
-                    if (mStartDip / prevRR[2] >= 1.05 && mStartDip / prevRR[2] <= 2) {
+                } else if (mDipping && prevRR[2] < prevRR[3])
+                {
+                    if (mStartDip / prevRR[2] >= 1.05 && mStartDip / prevRR[2] <= 2)
+                    {
                         isDip = true;
                     }
                     mDipping = false;
@@ -375,13 +430,16 @@ public class DataRecordingService extends Service {
                 boolean isValid = currentTime - mLastMove > 1000;
                 isValid |= mLoss < 17;
                 mRRReadings++;
-                if (100 * Math.abs((prevRR[3] / prevRR[2]) - 1) <= 2.0) {
+                if (100 * Math.abs((prevRR[3] / prevRR[2]) - 1) <= 2.0)
+                {
                     mNumStressBits++;
                 }
-                if (isValid) {
+                if (isValid)
+                {
 
                     mValids++;
-                    if (isDip) {
+                    if (isDip)
+                    {
                         ++mBreaths;
                         mDips++;
                     }
@@ -391,20 +449,24 @@ public class DataRecordingService extends Service {
         }
     };
 
-    private BandAccelerometerEventListener mAccelerometerEventListener = new BandAccelerometerEventListener() {
+    private BandAccelerometerEventListener mAccelerometerEventListener = new BandAccelerometerEventListener()
+    {
         @Override
         public void onBandAccelerometerChanged(final BandAccelerometerEvent event) {
-            if (event != null) {
+            if (event != null)
+            {
                 mAcclChange++;
                 mAcclReading = 100 * (Math.pow(event.getAccelerationX() - prevXYZ[0], 2) +
                         Math.pow(event.getAccelerationY() - prevXYZ[1], 2) + Math.pow(event.getAccelerationZ() - prevXYZ[2], 2));
                 prevXYZ[0] = event.getAccelerationX();
                 prevXYZ[1] = event.getAccelerationY();
                 prevXYZ[2] = event.getAccelerationZ();
-                if (mAcclReading > 0.01) {
+                if (mAcclReading > 0.01)
+                {
 
                     mLastMove = System.currentTimeMillis();
-                    if (mAcclReading > 5.0) {
+                    if (mAcclReading > 5.0)
+                    {
                         mAcclMoved++;
                         Log.d("movement", String.format("move %.3f", mAcclReading));
                     }
@@ -414,14 +476,19 @@ public class DataRecordingService extends Service {
         }
     };
 
-    private BandPedometerEventListener mStepEventListener = new BandPedometerEventListener() {
+    private BandPedometerEventListener mStepEventListener = new BandPedometerEventListener()
+    {
         @Override
         public void onBandPedometerChanged(BandPedometerEvent event) {
-            if (event != null) {
-                if (mSteps == 0) {
+            if (event != null)
+            {
+                if (mSteps == 0)
+                {
                     mSteps = event.getTotalSteps();
-                } else {
-                    if (mStepDifference < event.getTotalSteps() - mSteps) {
+                } else
+                {
+                    if (mStepDifference < event.getTotalSteps() - mSteps)
+                    {
                         mStepDifference = event.getTotalSteps() - mSteps;
                     }
                 }
@@ -430,10 +497,12 @@ public class DataRecordingService extends Service {
         }
     };
 
-    private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener() {
+    private BandHeartRateEventListener mHeartRateEventListener = new BandHeartRateEventListener()
+    {
         @Override
         public void onBandHeartRateChanged(final BandHeartRateEvent event) {
-            if (event != null) {
+            if (event != null)
+            {
                 int temp = event.getHeartRate();
                 mAverageHR += temp;
                 mHRreadingCount++;
@@ -444,7 +513,8 @@ public class DataRecordingService extends Service {
 
                 double loss = Math.pow(tempHR - temp, 2);
                 mLoss = (int) Math.round(loss);
-                if (loss > 9) {
+                if (loss > 9)
+                {
                     mCurrentReadings = new DenseMatrix64F(1, 1, true, Math.abs(temp));
                     mKF2.predict();
                     mKF2.update(mCurrentReadings, mIdentityMatrix);
@@ -454,13 +524,16 @@ public class DataRecordingService extends Service {
                 final int temp2 = temp;
                 Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp2, mStressMinutes, mValids / mDips, (mValids / mDips) * (mNumStressBits / mRRReadings)));
                 // Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids / mDips, (mValids / mDips) / (temp / 60.0)));
-                if (currentTime - mLastMinute >= 60000) {
-                    if (mValids / ((double) mAverageHR / mHRreadingCount) > 1 / 3.0) {
+                if (currentTime - mLastMinute >= 60000)
+                {
+                    if (mValids / ((double) mAverageHR / mHRreadingCount) > 1 / 3.0)
+                    {
                         mMinutes++;
                         if (mDips == 0)
                             mDips = 1;
                         mSumAverage += (mValids / mDips) * (mNumStressBits / mRRReadings);
-                        if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20) {
+                        if ((mValids / mDips) * (mNumStressBits / mRRReadings) > 20)
+                        {
                             mStressMinutes++;
                         }
                     }
@@ -468,20 +541,27 @@ public class DataRecordingService extends Service {
                     mLastMinute = currentTime;
                     mValids = 0;
                     mDips = 0;
-                    if (mMinutes > 0) {
+                    if (mMinutes > 0)
+                    {
                         mMostRecent[1] = (double) mStressMinutes / mMinutes;
-                    } else {
+                    } else
+                    {
                         mMostRecent[1] = 0;
                     }
                     mNumStressBits = 0;
                     mRRReadings = 0;
                     mAverageHR = 0;
                     mHRreadingCount = 0;
+
+                    mNotificationBuilder.setContentText(String.format("Current stress level: %.0f%%", (double) 100 * mStressMinutes / mMinutes));
+                    mNotificationManager.notify(1234, mNotificationBuilder.build());
                 }
 
-                if (((mValids / mDips) * (mNumStressBits / mRRReadings)) > 0 && ((mValids / mDips) * (mNumStressBits / mRRReadings)) < 100) {
+                if (((mValids / mDips) * (mNumStressBits / mRRReadings)) > 0 && ((mValids / mDips) * (mNumStressBits / mRRReadings)) < 100)
+                {
                     mMostRecent[0] = Math.min(((mValids / mDips) * (mNumStressBits / mRRReadings)) / 20.0, 1.0);
-                } else {
+                } else
+                {
                     mMostRecent[0] = 0;
                 }
                 long timerVal = (long) Math.floor((currentTime - mLastMinute) / 1000.0);
@@ -492,14 +572,17 @@ public class DataRecordingService extends Service {
     };
 
     private boolean getConnectedBandClient() throws InterruptedException, BandException {
-        if (client == null) {
+        if (client == null)
+        {
             BandInfo[] devices = BandClientManager.getInstance().getPairedBands();
-            if (devices.length == 0) {
+            if (devices.length == 0)
+            {
                 //   appendToUI("Band isn't paired with your phone.\n");
                 return false;
             }
             client = BandClientManager.getInstance().create(getBaseContext(), devices[0]);
-        } else if (ConnectionState.CONNECTED == client.getConnectionState()) {
+        } else if (ConnectionState.CONNECTED == client.getConnectionState())
+        {
             return true;
         }
 
@@ -507,31 +590,41 @@ public class DataRecordingService extends Service {
         return ConnectionState.CONNECTED == client.connect().await();
     }
 
-    private class RRIntervalSubscriptionTask extends AsyncTask<Void, Void, Void> {
+    private class RRIntervalSubscriptionTask extends AsyncTask<Void, Void, Void>
+    {
         @Override
         protected Void doInBackground(Void... params) {
-            try {
-                if (getConnectedBandClient()) {
+            try
+            {
+                if (getConnectedBandClient())
+                {
                     int hardwareVersion = Integer.parseInt(client.getHardwareVersion().await());
-                    if (hardwareVersion >= 20) {
-                        if (client.getSensorManager().getCurrentHeartRateConsent() == UserConsent.GRANTED) {
+                    if (hardwareVersion >= 20)
+                    {
+                        if (client.getSensorManager().getCurrentHeartRateConsent() == UserConsent.GRANTED)
+                        {
                             client.getSensorManager().registerRRIntervalEventListener(mRRIntervalEventListener);
                             client.getSensorManager().registerHeartRateEventListener(mHeartRateEventListener);
                             client.getSensorManager().registerAccelerometerEventListener(mAccelerometerEventListener, SampleRate.MS128);
                             client.getSensorManager().registerPedometerEventListener(mStepEventListener);
-                        } else {
+                        } else
+                        {
                             //  appendToUI("You have not given this application consent to access heart rate data yet."
                             //      + " Please press the Heart Rate Consent button.\n");
                         }
-                    } else {
+                    } else
+                    {
                         //   appendToUI("The RR Interval mSensor is not supported with your Band version. Microsoft Band 2 is required.\n");
                     }
-                } else {
+                } else
+                {
                     //appendToUI("Band isn't connected. Please make sure bluetooth is on and the band is in range.\n");
                 }
-            } catch (BandException e) {
+            } catch (BandException e)
+            {
                 String exceptionMessage = "";
-                switch (e.getErrorType()) {
+                switch (e.getErrorType())
+                {
                     case UNSUPPORTED_SDK_VERSION_ERROR:
                         exceptionMessage = "Microsoft Health BandService doesn't support your SDK Version. Please update to latest SDK.\n";
                         break;
@@ -544,7 +637,8 @@ public class DataRecordingService extends Service {
                 }
                 //appendToUI(exceptionMessage);
 
-            } catch (Exception e) {
+            } catch (Exception e)
+            {
                 //appendToUI(e.getMessage());
             }
             return null;
@@ -558,6 +652,95 @@ public class DataRecordingService extends Service {
         intent.putExtra("timerUpdate", mTimerText);
 
         mBroadcaster.sendBroadcast(intent);
+    }
+
+    private int stopRecording(boolean getResults, String eventId)
+    {
+        try
+        {
+            if (getConnectedBandClient())
+            {
+                client.getSensorManager().unregisterRRIntervalEventListener(mRRIntervalEventListener);
+                client.getSensorManager().unregisterHeartRateEventListener(mHeartRateEventListener);
+                client.getSensorManager().unregisterAccelerometerEventListener(mAccelerometerEventListener);
+                client.getSensorManager().unregisterPedometerEventListener(mStepEventListener);
+            }
+        } catch (InterruptedException e)
+        {
+        } catch (BandException e)
+        {
+        }
+        mSensor.stop();
+        mTimer.cancel();
+        Intent broadcastIntent = new Intent(STRESS_PAUSE);
+        mBroadcaster.sendBroadcastSync(broadcastIntent);
+
+        if (getResults)
+        {
+            updateEventDetails(eventId);
+        }
+        else
+        {
+            stopForeground(true);
+            stopSelf();
+        }
+        return -1;
+    }
+
+    private void updateEventDetails(String id)
+    {
+        SharedPreferences savedData = mContext.getSharedPreferences("userData", Context.MODE_PRIVATE);
+        String objectID = savedData.getString("parseEventMapID", "ID Not Available");
+        final Gson converter = new Gson();
+        if (!objectID.equals("ID Not Available"))
+        {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("CalendarEvents");
+            query.fromLocalDatastore();
+            final String eventId = id;
+            query.getInBackground(objectID, new GetCallback<ParseObject>()
+            {
+                @Override
+                public void done(ParseObject object, ParseException e) {
+                    if (e == null)
+                    {
+                        JSONObject eventMap = object.getJSONObject("EventMapWrapper");
+                        try
+                        {
+                            CalendarEventRecordingTrigger cEvent = converter.fromJson(eventMap.getString(eventId), CalendarEventRecordingTrigger.class);
+                            cEvent.setMovementLevel(mMostRecent[3]);
+                            cEvent.setNoiseLevel(mMostRecent[2]);
+                            int stress = mMostRecent[1] > 0.5 ? 2 : 1;
+                            cEvent.setStressLevel(stress);
+                            eventMap.put(eventId, converter.toJson(cEvent));
+                            object.put("EventMapWrapper", eventMap);
+                            object.pinInBackground(new SaveCallback()
+                            {
+                                @Override
+                                public void done(ParseException e) {
+                                    if (e == null)
+                                    {
+                                        Log.d("Content", String.format("Saved %.3f %.3f %.3f", mMostRecent[1], mMostRecent[2], mMostRecent[3]));
+
+                                    } else
+                                    {
+                                        Log.d("Content", "Not Saved");
+                                    }
+                                    stopForeground(true);
+                                    stopSelf();
+                                }
+                            });
+                        } catch (org.json.JSONException j)
+                        {
+
+                        }
+
+                    } else
+                    {
+                        Log.d("Event", "Not found");
+                    }
+                }
+            });
+        }
     }
 
     public static boolean isRunning() {

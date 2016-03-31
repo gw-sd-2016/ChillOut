@@ -6,14 +6,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
-import com.parse.Parse;
 
 public class CalendarActivity extends AppCompatActivity implements CalendarEventsListFragment.OnFragmentInteractionListener {
 
@@ -24,7 +21,7 @@ public class CalendarActivity extends AppCompatActivity implements CalendarEvent
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        Parse.enableLocalDatastore(this);
+//       Parse.enableLocalDatastore(this);
 //        Parse.initialize(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);

@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +57,7 @@ public class BarFragment extends Fragment {
     private static float mMax;
     private int mPos;
     private String mStressColor = "#5e4072";
+    private boolean mRealEvent;
 
     public BarFragment() {
     }
@@ -64,7 +66,7 @@ public class BarFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mRealEvent = false;
         if (getActivity().getIntent().hasExtra("position")) {
             mPos = getActivity().getIntent().getExtras().getInt("position", -1);
             if (mPos % 3 == 0)//stressed
@@ -81,6 +83,33 @@ public class BarFragment extends Fragment {
                 mStressColor = "#3ac298";
             }
             this.setHasOptionsMenu(true);
+        }
+
+        if (getActivity().getIntent().hasExtra("stress")) {
+            Log.d("IntentExtra","Stress is present");
+            mPos = (int) getActivity().getIntent().getExtras().getDouble("stress", -1);
+
+            if (mPos  == 2)//stressed
+            {
+                mValuesOne[0][0] = 8.0f;
+                mStressColor = "#db0c42";
+                mRealEvent = true;
+            } else if (mPos == 1)//relaxed
+            {
+                mValuesOne[0][0] = 2.0f;
+                mStressColor = "#2c93d0";
+                mRealEvent = true;
+            }
+        }
+        else
+        {
+            mRealEvent = false;
+        }
+
+        if(mRealEvent)
+        {
+            mValuesOne[0][0] = (float) ((float) 10.0 * getActivity().getIntent().getExtras().getDouble("noise", -1));
+            mValuesOne[0][1] = (float) ((float) 10.0 * getActivity().getIntent().getExtras().getDouble("movement", -1));
         }
     }
 
@@ -171,9 +200,11 @@ public class BarFragment extends Fragment {
         //   tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
         // }
         // barChart.setTooltips(tooltip);
-        mValuesOne[0][0] = Float.valueOf(String.valueOf(10 * Math.random()));
-
-        mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
+        if(!mRealEvent)
+        {
+            mValuesOne[0][0] = Float.valueOf(String.valueOf(10 * Math.random()));
+            mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
+        }
         BarSet barSet = new BarSet(mLabelsOne, mValuesOne[0]);
          barSet.setColor(Color.parseColor(mStressColor));
        /*  for (int z = 0; z < mValuesOne[0].length; z++) {
