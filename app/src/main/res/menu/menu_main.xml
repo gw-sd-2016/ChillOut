@@ -3,5 +3,5 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".LiveResultsActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="always"
-        android:icon="@android:drawable/ic_btn_speak_now"/>
+        android:icon="@drawable/ic_mic_white_24dp"/>
 </menu>

@@ -14,6 +14,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -82,7 +83,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 )
                 .build();
 
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+       // getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         result.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
         /** Drawer ends */
 
@@ -93,6 +94,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         }*/
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         BarFragment chart = new BarFragment();
         getSupportFragmentManager().beginTransaction()
@@ -110,8 +112,9 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
         Cursor cursor = getContentResolver().query(uri, proj, CalendarContract.Events._ID + " = ?", new String[]{eventId}, null);
         if (position >= 0) {
             RelativeLayout contentLayout = (RelativeLayout) findViewById(R.id.eventContent);
-            contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.textAccent));
+            contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.eventBackground));
             Window w = getWindow();
+            CardView detsCard = (CardView) findViewById(R.id.timeAndPlace);
             FrameLayout backgroundColor = (FrameLayout) findViewById(R.id.backgroundFrame);
             if (position % 3 == 0) {
              //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStress));
@@ -119,25 +122,32 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorStressDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorStress));
-
+              //  contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBackground));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBar));
             } else if (position % 5 == 0 ) {
             //    contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNoise));
                 toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNoiseDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
+               // contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNoiseBackground));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNoise));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorNoiseBar));
             } else if (position % 7 == 0 || position % 4 == 0) {
              //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAnxious));
                 toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorAnxious))));
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorAnxiousDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorAnxious))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorAnxious));
+               // contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAnxiousBackground));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorAnxiousBar));
             } else {
              //   contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutral));
                 toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNeutral))));
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNeutralDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNeutral))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNeutral));
+                //contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutralBackground));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutralBar));
             }
 
             if(mStress == 2)
@@ -146,6 +156,8 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorStressDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorStress));
+               // contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBackground));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBar));
             }
             else if(mStress == 1)
             {
@@ -153,13 +165,15 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNoiseDark)));
                 backgroundColor.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
                 fab.setBackgroundTintList(getResources().getColorStateList(R.color.colorNoise));
+               // contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorNoiseBackground));
+                detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorNoiseBar));
             }
 
         }
 
         if (cursor.moveToFirst()) {
             TextView eventLocation = (TextView) findViewById(R.id.eventLocation);
-            setTitle(cursor.getString(0));
+            mTitle.setText(cursor.getString(0));
             if(cursor.getString(1) != null && cursor.getString(1).length() > 0)
             {
                 eventLocation.setText(cursor.getString(1));

@@ -17,11 +17,13 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.widget.CardView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,6 +36,7 @@ import com.parse.ParseQuery;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -55,9 +58,14 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     private String mCurFilter;
     private static final int LOADER_EVENTS = 1;
     private static SimpleDateFormat mSimpleDateFormat;
+    private static SimpleDateFormat mDayOfWeekFormat;
     private static CalendarEventRecordingTrigger mCurrentEvent;
     private static double[] mEventData;
     private static JSONObject mEventMap;
+    private static String mCurrentWeek;
+    private static String mCurrentDay;
+    private static Calendar mCalendar;
+    private static long mEndTime;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -97,6 +105,11 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mEventData = new double[3];
+        mCalendar = Calendar.getInstance();
+        mCurrentWeek = "";
+        mCurrentDay = "";
+        mEndTime = Long.MAX_VALUE;
+
         getEventMap();
         try
         {
@@ -113,6 +126,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             Log.d("Listener", "Is null");
 
         mSimpleDateFormat = new SimpleDateFormat("h:mma");
+        mDayOfWeekFormat = new SimpleDateFormat("cccc");
 
         String from[] = new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
         int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventStartTime, R.id.eventEndTime};
@@ -284,11 +298,11 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         {
             ParseQuery<ParseObject> query = ParseQuery.getQuery("CalendarEvents");
             query.fromLocalDatastore();
-            try{
+            try
+            {
                 ParseObject object = query.get(objectID);
                 mEventMap = object.getJSONObject("EventMapWrapper");
-            }
-            catch (ParseException e)
+            } catch (ParseException e)
             {
                 Log.d("EventMapWrapper", "Not Found");
             }
@@ -301,7 +315,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         private CardView mCurrentCard;
         private LinearLayout mInnerCardLayout;
         private String mRecentDate;
-        private final SimpleDateFormat mDateComparer = new SimpleDateFormat("MM/dd/yy");
+        private final SimpleDateFormat mDateComparer = new SimpleDateFormat("MMM dd, yyyy");
         private LayoutInflater mInflater;
 
         public EventsAdapter(Context context, int layout, Cursor cursor, String[] from,
@@ -328,28 +342,36 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             Cursor c = getCursor();
             View rowView = super.getView(position, convertView, parent);
             CardView card = (CardView) rowView.findViewById(R.id.cardView);
+            FrameLayout buffer = (FrameLayout) rowView.findViewById(R.id.buffer);
             int col = getEventColor(c.getString(0));
             if (col > 0)
             {
                 if (col == 2)
                 {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
                 } else if (col == 1)
                 {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
                 }
             } else
             {
                 if (position % 3 == 0)
-                    card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
-                else if (position % 5 == 0)
                 {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
+                    card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
+                } else if (position % 5 == 0)
+                {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
                 } else if (position % 7 == 0 || position % 4 == 0)
                 {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAnxious));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorAnxious));
                 } else
                 {
+                    buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNeutral));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNeutral));
                 }
             }
@@ -362,39 +384,136 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
 
             int color = getEventColor(cursor.getString(0));
             CardView card = (CardView) rowView.findViewById(R.id.cardView);
-            if (color > 0)
-            {
-                if (color == 2)
-                {
-                    card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
-                } else if (color == 1)
-                {
-                    card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
-                }
-            }
+            CardView cardWrapper = (CardView) rowView.findViewById(R.id.backgroundCard);
+            String title = cursor.getString(1);
+            String location = cursor.getString(2);
+            long startTime = cursor.getLong(3);
+            long endTime = cursor.getLong(4);
 
-            long currentDateTime = cursor.getLong(4);
-            String dateString = mDateComparer.format(new Date(currentDateTime));
-
+            mCalendar.setTimeInMillis(startTime);
+            mCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            String dateString = "Week of " + mDateComparer.format(mCalendar.getTime());
             TextView date = (TextView) rowView.findViewById(R.id.eventDate);
-            date.setText(dateString);
+            FrameLayout header = (FrameLayout) rowView.findViewById(R.id.header);
+            int margin = (int) mContext.getResources().getDimension(R.dimen.card_margin);
+            FrameLayout divider = (FrameLayout) rowView.findViewById(R.id.divider);
+            divider.setVisibility(View.VISIBLE);
+            if (cursor.getPosition() > 0 && cursor.moveToPrevious())
+            {
+                mCalendar.setTimeInMillis(cursor.getLong(3));
+                mCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                String prevString = "Week of " + mDateComparer.format(mCalendar.getTime());
+                if (prevString.equals(dateString))
+                {
+
+                    header.setVisibility(View.GONE);
+                    LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) cardWrapper.getLayoutParams();
+                    lp.setMargins(0, 0, 0, 0);
+                    cursor.moveToNext();
+                    if (cursor.getPosition() < cursor.getCount() - 1)
+                        if (cursor.moveToNext())
+                        {
+                            mCalendar.setTimeInMillis(cursor.getLong(3));
+                            mCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                            String nextString = "Week of " + mDateComparer.format(mCalendar.getTime());
+                            FrameLayout buffer = (FrameLayout) rowView.findViewById(R.id.buffer);
+                            buffer.setVisibility(View.VISIBLE);
+                            FrameLayout.LayoutParams fb = (FrameLayout.LayoutParams) buffer.getLayoutParams();
+                            if (nextString.equals(dateString))
+                            {
+                                card.setRadius(0);
+                                fb.gravity = Gravity.BOTTOM;
+                            } else
+                            {
+                                card.setRadius(mContext.getResources().getDimension(R.dimen.card_radius));
+                                lp.setMargins(0, 0, 0, margin);
+                                fb.gravity = Gravity.TOP;
+                                divider.setVisibility(View.GONE);
+                            }
+                            cursor.moveToPrevious();
+                        }
+                } else
+                {
+                    header.setVisibility(View.VISIBLE);
+                    date.setText(dateString);
+                    mCurrentWeek = dateString;
+                    LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) cardWrapper.getLayoutParams();
+                    card.setRadius(mContext.getResources().getDimension(R.dimen.card_radius));
+                    cursor.moveToNext();
+                    if (cursor.getPosition() < cursor.getCount() - 1)
+                        if (cursor.moveToNext())
+                        {
+                            mCalendar.setTimeInMillis(cursor.getLong(3));
+                            mCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                            String nextString = "Week of " + mDateComparer.format(mCalendar.getTime());
+                            FrameLayout buffer = (FrameLayout) rowView.findViewById(R.id.buffer);
+                            if (!nextString.equals(dateString))
+                            {
+                                card.setRadius(mContext.getResources().getDimension(R.dimen.card_radius));
+                                buffer.setVisibility(View.GONE);
+                                lp.setMargins(0, margin, 0, margin);
+                                divider.setVisibility(View.GONE);
+                            } else
+                            {
+                                FrameLayout.LayoutParams fb = (FrameLayout.LayoutParams) buffer.getLayoutParams();
+                                buffer.setVisibility(View.VISIBLE);
+                                fb.gravity = Gravity.BOTTOM;
+                                lp.setMargins(0, margin, 0, 0);
+                            }
+                            cursor.moveToPrevious();
+                        }
+                }
+
+            } else
+            {
+                header.setVisibility(View.VISIBLE);
+                date.setText(dateString);
+                mCurrentWeek = dateString;
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) cardWrapper.getLayoutParams();
+                card.setRadius(mContext.getResources().getDimension(R.dimen.card_radius));
+                if (cursor.getPosition() < cursor.getCount() - 1)
+                    if (cursor.moveToNext())
+                    {
+                        mCalendar.setTimeInMillis(cursor.getLong(3));
+                        mCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                        String nextString = "Week of " + mDateComparer.format(mCalendar.getTime());
+                        FrameLayout buffer = (FrameLayout) rowView.findViewById(R.id.buffer);
+                        if (!nextString.equals(dateString))
+                        {
+                            // card.setRadius(0);
+                            lp.setMargins(0, margin, 0, margin);
+                            buffer.setVisibility(View.GONE);
+                            // divider.setVisibility(View.GONE);
+                        } else
+                        {
+                            FrameLayout.LayoutParams fb = (FrameLayout.LayoutParams) buffer.getLayoutParams();
+                            buffer.setVisibility(View.VISIBLE);
+                            fb.gravity = Gravity.BOTTOM;
+                            lp.setMargins(0, margin, 0, 0);
+                        }
+                        cursor.moveToPrevious();
+                    }
+            }
 
             TextView eventTitle = (TextView) rowView.findViewById(R.id.eventTitle);
             TextView eventLocation = (TextView) rowView.findViewById(R.id.eventLocation);
+            TextView eventDayOfWeek = (TextView) rowView.findViewById(R.id.eventDayOfWeek);
             TextView eventStartTime = (TextView) rowView.findViewById(R.id.eventStartTime);
             TextView eventEndTime = (TextView) rowView.findViewById(R.id.eventEndTime);
-            eventTitle.setText(cursor.getString(1));
-            if (cursor.getString(2) != null && cursor.getString(2).length() > 0)
+            eventTitle.setText(title);
+            if (location != null && location.length() > 0)
             {
                 eventLocation.setVisibility(View.VISIBLE);
-                eventLocation.setText(cursor.getString(2));
+                eventLocation.setText(location);
             } else
             {
                 eventLocation.setVisibility(View.GONE);
             }
-            String timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(3)));
+            String dayOfWeek = mDayOfWeekFormat.format(endTime);
+            eventDayOfWeek.setText(dayOfWeek);
+            String timeAsString = mSimpleDateFormat.format(new Date(startTime));
             eventStartTime.setText(timeAsString + " - ");
-            timeAsString = mSimpleDateFormat.format(new Date(cursor.getLong(4)));
+            timeAsString = mSimpleDateFormat.format(new Date(endTime));
             eventEndTime.setText(timeAsString);
         }
 
@@ -403,7 +522,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
 
             final String eventId = id;
 
-            if(mEventMap != null)
+            if (mEventMap != null)
             {
                 Gson converter = new Gson();
                 try

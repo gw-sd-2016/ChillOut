@@ -1,7 +1,6 @@
 package com.example.grayapps.contextaware;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.parse.Parse;
 
@@ -16,6 +15,5 @@ public class BreatheApplication extends Application {
 
         Parse.enableLocalDatastore(this);
         Parse.initialize(this, "SelfAware", "PrimaryTestingKey");
-
     }
 }

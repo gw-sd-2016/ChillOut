@@ -4,11 +4,11 @@
     android:layout_height="fill_parent"
     tools:context="com.example.grayapps.contextaware.CalendarEventsListFragment"
     android:contextClickable="true"
-    android:background="@color/textPrimary">
+    android:background="@color/colorNeutralBackground">
 
     <ListView android:id="@android:id/list" android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="@android:color/transparent">
-        </ListView>
+    </ListView>
 
 </FrameLayout>

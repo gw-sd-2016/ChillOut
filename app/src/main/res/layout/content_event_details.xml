@@ -7,7 +7,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_event_details"
     tools:context="com.example.grayapps.contextaware.EventDetailsActivity"
-    android:background="@color/colorPrimaryDark"
+    android:background="@color/colorNeutralBackground"
     android:id="@+id/eventContent">
     <FrameLayout
         android:layout_width="match_parent"
@@ -35,7 +35,7 @@
         android:layout_marginRight="@dimen/card_margin"
         android:layout_below="@+id/container"
         android:background="@color/colorCardInfo"
-        card_view:cardBackgroundColor="@color/textPrimary">
+        card_view:cardBackgroundColor="@color/colorNeutralBar">
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -45,8 +45,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:src="@drawable/ic_access_time_black_24dp"
-                android:alpha="0.65"
+                android:src="@drawable/ic_access_time_white_24dp"
+                android:alpha="0.85"
                 android:id="@+id/timeIcon" />
 
     <TextView
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/eventDate"
         android:textSize="18sp"
-        android:textColor="@color/colorPrimaryDark"
+        android:textColor="@color/textPrimary"
         android:paddingStart="20dp"
         android:layout_toEndOf="@id/timeIcon"
         android:layout_alignBaseline="@id/timeIcon"
@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/eventTime"
                 android:textSize="18sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textAccent"
                 android:paddingStart="20dp"
                 android:layout_below="@id/eventDate"
                 android:layout_alignStart="@id/eventDate"
@@ -77,15 +77,15 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/eventTime"
         android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:src="@drawable/ic_place_black_24dp"
-        android:alpha="0.65"
+        android:src="@drawable/ic_place_white_24dp"
+        android:alpha="0.85"
         android:id="@+id/locationIcon" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/eventLocation"
-        android:textColor="@color/colorPrimaryDark"
+        android:textColor="@color/textPrimary"
         android:textSize="18sp"
         android:paddingStart="20dp"
         android:layout_toEndOf="@+id/locationIcon"
@@ -99,8 +99,8 @@
         android:id="@+id/attendeesIcon"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/locationIcon"
-        android:src="@drawable/ic_people_black_24dp"
-        android:alpha="0.65"/>
+        android:src="@drawable/ic_people_white_24dp"
+        android:alpha="0.85"/>
 
 
     <fragment

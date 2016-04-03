@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#455b65</color>
+    <color name="colorPrimary">#2e2e2e</color>
+    <color name="colorPrimary50">#802e2e2e</color>
     <color name="colorPrimaryDark">#1b1b1b</color>
     <color name="colorAccent">#1b1b1b</color>
-    <color name="colorCardInfo">#73dedede</color>
+    <color name="colorCardInfo">#731e1e1e</color>
     <color name="behindToolbar">#0d0d0d</color>
     <color name="colorBar">#21BEDB</color>
     <color name="colorStress">#db0c42</color>
+    <color name="colorStressBackground">#3b0913</color>
+    <color name="colorStressBar">#5c0f1b</color>
     <color name="colorAnxious">#3ac298</color>
-    <color name="colorNeutral">#5e4072</color>
+    <color name="colorAnxiousBackground">#133b2f</color>
+    <color name="colorAnxiousBar">#174e3d</color>
+    <color name="colorNeutral">#855ca3</color>
     <color name="colorNoise">#2c93d0</color>
+    <color name="colorNoiseBackground">#05131b</color>
+    <color name="colorNoiseBar">#0b2636</color>
     <color name="colorStressDark">#940a2e</color>
     <color name="colorAnxiousDark">#206953</color>
+    <color name="colorNeutralExtraDark">#151025</color>
+    <color name="colorNeutralBackground">#1b142e</color>
+    <color name="colorNeutralBar">#211738</color>
     <color name="colorNeutralDark">#483158</color>
     <color name="colorNoiseDark">#1e6996</color>
     <color name="colorMove">#DCB869</color>
     <color name="textPrimary">#fffdfdfd</color>
+    <color name="eventBackground">#e4e4e4</color>
     <color name="textAccent">#a0fdfdfd</color>
 </resources>

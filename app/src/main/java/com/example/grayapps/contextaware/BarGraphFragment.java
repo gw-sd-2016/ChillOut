@@ -101,7 +101,7 @@ public class BarGraphFragment extends Fragment {
         mChartOne = (BarChartView) layout.findViewById(R.id.barchart1);
 
         CardView barCard = (CardView) layout.findViewById(R.id.cardContent);
-        barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorPrimaryDark)));
+        barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorNeutralBar)));
         showChart(0, mChartOne);
         //showChart(1, mChartTwo, mPlayTwo);
         //showChart(2, mChartThree, mPlayThree);

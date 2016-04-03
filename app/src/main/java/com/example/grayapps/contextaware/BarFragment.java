@@ -7,6 +7,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +43,8 @@ import java.util.ArrayList;
  *
  */
 
-public class BarFragment extends Fragment {
+public class BarFragment extends Fragment
+{
 
 
     /**
@@ -56,7 +58,7 @@ public class BarFragment extends Fragment {
     private static float[] mNewValues = new float[2];
     private static float mMax;
     private int mPos;
-    private String mStressColor = "#5e4072";
+    private String mStressColor = "#855ca3";
     private boolean mRealEvent;
 
     public BarFragment() {
@@ -67,7 +69,8 @@ public class BarFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mRealEvent = false;
-        if (getActivity().getIntent().hasExtra("position")) {
+        if (getActivity().getIntent().hasExtra("position"))
+        {
             mPos = getActivity().getIntent().getExtras().getInt("position", -1);
             if (mPos % 3 == 0)//stressed
             {
@@ -85,11 +88,12 @@ public class BarFragment extends Fragment {
             this.setHasOptionsMenu(true);
         }
 
-        if (getActivity().getIntent().hasExtra("stress")) {
-            Log.d("IntentExtra","Stress is present");
+        if (getActivity().getIntent().hasExtra("stress"))
+        {
+            Log.d("IntentExtra", "Stress is present");
             mPos = (int) getActivity().getIntent().getExtras().getDouble("stress", -1);
 
-            if (mPos  == 2)//stressed
+            if (mPos == 2)//stressed
             {
                 mValuesOne[0][0] = 8.0f;
                 mStressColor = "#db0c42";
@@ -100,13 +104,12 @@ public class BarFragment extends Fragment {
                 mStressColor = "#2c93d0";
                 mRealEvent = true;
             }
-        }
-        else
+        } else
         {
             mRealEvent = false;
         }
 
-        if(mRealEvent)
+        if (mRealEvent)
         {
             mValuesOne[0][0] = (float) ((float) 10.0 * getActivity().getIntent().getExtras().getDouble("noise", -1));
             mValuesOne[0][1] = (float) ((float) 10.0 * getActivity().getIntent().getExtras().getDouble("movement", -1));
@@ -116,7 +119,8 @@ public class BarFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+                             Bundle savedInstanceState)
+    {
 
         View layout = inflater.inflate(R.layout.bargraph, container, false);
 
@@ -124,6 +128,21 @@ public class BarFragment extends Fragment {
         mUpdateOne = true;
         mChartOne = (BarChartView) layout.findViewById(R.id.barchart1);
 
+        CardView barCard = (CardView) layout.findViewById(R.id.cardContent);
+
+        if (mStressColor == "#db0c42")//stressed
+        {
+            barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorStressBar)));
+        } else if (mStressColor == "#2c93d0")//relaxed
+        {
+            barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorNoiseBar)));
+        } else if (mStressColor == "#3ac298")//relaxed
+        {
+            barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorAnxiousBar)));
+        } else
+        {
+            barCard.setCardBackgroundColor(Color.parseColor(getResources().getString(R.color.colorNeutralBar)));
+        }
         showChart(0, mChartOne);
         //showChart(1, mChartTwo, mPlayTwo);
         //showChart(2, mChartThree, mPlayThree);
@@ -140,10 +159,12 @@ public class BarFragment extends Fragment {
      */
     private void showChart(final int tag, final ChartView chart) {
         // dismissPlay(btn);
-        Runnable action = new Runnable() {
+        Runnable action = new Runnable()
+        {
             @Override
             public void run() {
-                new Handler().postDelayed(new Runnable() {
+                new Handler().postDelayed(new Runnable()
+                {
                     public void run() {
                         //showPlay(btn);
                     }
@@ -151,7 +172,8 @@ public class BarFragment extends Fragment {
             }
         };
 
-        switch (tag) {
+        switch (tag)
+        {
             case 0:
                 produceOne(chart, action);
                 break;
@@ -171,7 +193,8 @@ public class BarFragment extends Fragment {
 
         // dismissPlay(btn);
 
-        switch (tag) {
+        switch (tag)
+        {
             case 0:
                 updateOne(chart);
                 break;
@@ -187,7 +210,8 @@ public class BarFragment extends Fragment {
     public void produceOne(ChartView chart, Runnable action) {
         BarChartView barChart = (BarChartView) chart;
 
-        barChart.setOnEntryClickListener(new OnEntryClickListener() {
+        barChart.setOnEntryClickListener(new OnEntryClickListener()
+        {
             @Override
             public void onClick(int setIndex, int entryIndex, Rect rect) {
                 System.out.println("OnClick " + rect.left);
@@ -200,13 +224,13 @@ public class BarFragment extends Fragment {
         //   tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
         // }
         // barChart.setTooltips(tooltip);
-        if(!mRealEvent)
+        if (!mRealEvent)
         {
             mValuesOne[0][0] = Float.valueOf(String.valueOf(10 * Math.random()));
             mValuesOne[0][1] = Float.valueOf(String.valueOf(10 * Math.random()));
         }
         BarSet barSet = new BarSet(mLabelsOne, mValuesOne[0]);
-         barSet.setColor(Color.parseColor(mStressColor));
+        barSet.setColor(Color.parseColor(mStressColor));
        /*  for (int z = 0; z < mValuesOne[0].length; z++) {
           if (mValuesOne[0][z] < 2.5) {
                 barSet.getEntry(z).setColor(Color.parseColor("#2c93d0"));//blue
@@ -227,13 +251,14 @@ public class BarFragment extends Fragment {
                 .setYAxis(false)
                 .setXLabels(XController.LabelPosition.OUTSIDE)
                 .setYLabels(YController.LabelPosition.NONE)
-                .setLabelsColor(Color.parseColor("#455b65"))
+                .setLabelsColor(Color.parseColor("#fffdfdfd"))
                 .setFontSize(28)
-                .setAxisColor(Color.parseColor("#1b1b1b"));
+                .setAxisColor(Color.parseColor("#a0fdfdfd"));
 
         int[] order = {0, 1};//, 0, 4};
         final Runnable auxAction = action;
-        Runnable chartOneAction = new Runnable() {
+        Runnable chartOneAction = new Runnable()
+        {
             @Override
             public void run() {
                 //showTooltipOne();
@@ -272,13 +297,16 @@ public class BarFragment extends Fragment {
         areas.add(mChartOne.getEntriesArea(0));
 //        areas.add(mChartOne.getEntriesArea(1));
 
-        for (int i = 0; i < areas.size(); i++) {
-            for (int j = 0; j < areas.get(i).size(); j++) {
+        for (int i = 0; i < areas.size(); i++)
+        {
+            for (int j = 0; j < areas.get(i).size(); j++)
+            {
 
                 Tooltip tooltip = new Tooltip(getActivity(), R.layout.barchart_one_tooltip, R.id.value);
                 tooltip.prepare(areas.get(i).get(j), mNewValues[i]);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+                {
                     tooltip.setEnterAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 1));
                     tooltip.setExitAnimation(PropertyValuesHolder.ofFloat(View.ALPHA, 0));
                 }
@@ -290,7 +318,8 @@ public class BarFragment extends Fragment {
 
     public static void setValues(double[] values) {
         mMax = 0;
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length; i++)
+        {
             mNewValues[i] = Float.valueOf(String.valueOf(10 * values[i]));
         }
         updateChart(0, mChartOne, null);

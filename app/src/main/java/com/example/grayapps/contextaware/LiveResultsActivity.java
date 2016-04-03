@@ -49,6 +49,8 @@ public class LiveResultsActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         TextView mTitle = (TextView) toolbar.findViewById(R.id.toolbar_title);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        mTitle.setText("Live Results");
         mBarChart = new BarGraphFragment();
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, mBarChart)

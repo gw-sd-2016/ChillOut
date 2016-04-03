@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main"
-    tools:context="com.example.grayapps.contextaware.MainActivity">
+    tools:context="com.example.grayapps.contextaware.MainActivity"
+    android:background="@color/eventBackground">
 
     <FrameLayout
         android:layout_width="fill_parent"
@@ -53,7 +54,7 @@
         android:layout_marginRight="@dimen/card_margin"
         android:layout_marginTop="130dp"
         android:background="@color/colorCardInfo"
-        card_view:cardBackgroundColor="@color/textPrimary">
+        card_view:cardBackgroundColor="@color/colorStressDark">
         <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -63,8 +64,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
-                android:src="@drawable/ic_access_time_black_24dp"
-                android:alpha="0.65"
+                android:src="@drawable/ic_access_time_white_24dp"
+                android:alpha="0.85"
                 android:id="@+id/timeIcon" />
 
             <TextView
@@ -72,18 +73,18 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/eventDate"
                 android:textSize="14sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:paddingStart="20dp"
                 android:layout_toEndOf="@id/timeIcon"
                 android:layout_alignBaseline="@id/timeIcon"
                 android:fontFamily="sans-serif-light"
-                android:text="Wednesday, 03/23/16"/>
+                android:text="Wednesday, 04/06/16"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/eventTime"
                 android:textSize="14sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:paddingStart="20dp"
                 android:layout_below="@id/eventDate"
                 android:layout_alignStart="@id/eventDate"
@@ -97,15 +98,15 @@
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/eventTime"
                 android:layout_marginTop="10dp"
-                android:src="@drawable/ic_place_black_24dp"
-                android:alpha="0.65"
+                android:src="@drawable/ic_place_white_24dp"
+                android:alpha="0.85"
                 android:id="@+id/locationIcon" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/eventLocation"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:textSize="14sp"
                 android:paddingStart="20dp"
                 android:fontFamily="sans-serif-light"
@@ -120,15 +121,15 @@
                 android:id="@+id/attendeesIcon"
                 android:layout_alignParentStart="true"
                 android:layout_below="@+id/locationIcon"
-                android:src="@drawable/ic_people_black_24dp"
-                android:alpha="0.65"/>
+                android:src="@drawable/ic_people_white_24dp"
+                android:alpha="0.85"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/person1"
                 android:textSize="14sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:paddingStart="20dp"
                 android:layout_toEndOf="@id/attendeesIcon"
                 android:layout_alignBottom="@id/attendeesIcon"
@@ -139,7 +140,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/person2"
                 android:textSize="14sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:paddingStart="20dp"
                 android:layout_below="@id/person1"
                 android:layout_alignStart="@id/person1"
@@ -151,7 +152,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/person3"
                 android:textSize="14sp"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/textPrimary"
                 android:paddingStart="20dp"
                 android:layout_below="@id/person2"
                 android:layout_alignStart="@id/person2"
@@ -177,7 +178,7 @@
         android:layout_marginTop="10dp"
         android:layout_below="@+id/timeAndPlace"
         android:background="@color/colorCardInfo"
-        card_view:cardBackgroundColor="@color/textPrimary">
+        card_view:cardBackgroundColor="@color/colorStressDark">
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
@@ -218,7 +219,7 @@
                     android:layout_height="wrap_content"
                     android:text="84%"
                     android:id="@+id/percent"
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/textPrimary"
                     android:fontFamily="sans-serif-light"
                     android:layout_alignParentEnd="false"
                     android:layout_alignParentStart="true"
@@ -228,7 +229,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=" of events with "
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/textPrimary"
                     android:id="@+id/ofEvents"
                     android:fontFamily="sans-serif-light"
                     android:layout_toRightOf="@+id/percent"
@@ -237,7 +238,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Joan Lehman "
-                    android:textColor="@color/colorPrimaryDark"
+                    android:textColor="@color/textPrimary"
                     android:id="@+id/factor"
                     android:layout_toRightOf="@id/ofEvents"
                     android:fontFamily="sans-serif-light"
@@ -259,7 +260,7 @@
                         android:layout_height="wrap_content"
                         android:text="71%"
                         android:id="@+id/percent2"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
                         android:layout_alignParentEnd="false"
                         android:layout_alignParentStart="true"
@@ -269,7 +270,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" of "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/ofEvents2"
                         android:fontFamily="sans-serif-light"
                         android:layout_toRightOf="@+id/percent2"
@@ -278,7 +279,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Job Performance Review "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/factor2"
                         android:layout_toRightOf="@id/ofEvents2"
                         android:fontFamily="sans-serif-light"
@@ -290,7 +291,7 @@
                         android:text="events"
                         android:id="@+id/name2"
                         android:layout_toRightOf="@id/factor2"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
                         android:textSize="14sp"/>
                 </RelativeLayout>
@@ -308,7 +309,7 @@
                         android:layout_height="wrap_content"
                         android:text="63%"
                         android:id="@+id/percent3"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
                         android:layout_alignParentEnd="false"
                         android:layout_alignParentStart="true"
@@ -318,7 +319,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" of events with "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/ofEvents3"
                         android:fontFamily="sans-serif-light"
                         android:layout_toRightOf="@+id/percent3"
@@ -327,7 +328,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Steve Bogdan "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/factor3"
                         android:layout_toRightOf="@id/ofEvents3"
                         android:fontFamily="sans-serif-light"
@@ -349,7 +350,7 @@
                         android:layout_height="wrap_content"
                         android:text="58%"
                         android:id="@+id/percent4"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
                         android:layout_alignParentEnd="false"
                         android:layout_alignParentStart="true"
@@ -359,7 +360,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text=" of events at "
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/ofEvents4"
                         android:fontFamily="sans-serif-light"
                         android:layout_toRightOf="@+id/percent4"
@@ -368,7 +369,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Work"
-                        android:textColor="@color/colorPrimaryDark"
+                        android:textColor="@color/textPrimary"
                         android:id="@+id/factor4"
                         android:layout_toRightOf="@id/ofEvents4"
                         android:fontFamily="sans-serif-light"
