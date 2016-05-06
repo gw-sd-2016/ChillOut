@@ -524,7 +524,7 @@ public class DataRecordingService extends Service
                 final int temp2 = temp;
                 Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp2, mStressMinutes, mValids / mDips, (mValids / mDips) * (mNumStressBits / mRRReadings)));
                 // Log.d("level", String.format("%.2f, %.2f, %s, %d, %d, %.2f, %.2f", mValids, mDips, mHRInterval, temp, mStressMinutes, mValids / mDips, (mValids / mDips) / (temp / 60.0)));
-                if (currentTime - mLastMinute >= 60000)
+                if (currentTime - mLastMinute > 59500)
                 {
                     if (mValids / ((double) mAverageHR / mHRreadingCount) > 1 / 3.0)
                     {
@@ -553,7 +553,10 @@ public class DataRecordingService extends Service
                     mAverageHR = 0;
                     mHRreadingCount = 0;
 
+                    if(mMinutes > 0)
                     mNotificationBuilder.setContentText(String.format("Current stress level: %.0f%%", (double) 100 * mStressMinutes / mMinutes));
+                    else
+                        mNotificationBuilder.setContentText(String.format("Current stress level: 0%%"));
                     mNotificationManager.notify(1234, mNotificationBuilder.build());
                 }
 
@@ -709,8 +712,8 @@ public class DataRecordingService extends Service
                             CalendarEventRecordingTrigger cEvent = converter.fromJson(eventMap.getString(eventId), CalendarEventRecordingTrigger.class);
                             cEvent.setMovementLevel(mMostRecent[3]);
                             cEvent.setNoiseLevel(mMostRecent[2]);
-                            int stress = mMostRecent[1] > 0.5 ? 2 : 1;
-                            cEvent.setStressLevel(stress);
+                            cEvent.setStressLevel(mMostRecent[1]);
+                            cEvent.addToGraph();
                             eventMap.put(eventId, converter.toJson(cEvent));
                             object.put("EventMapWrapper", eventMap);
                             object.pinInBackground(new SaveCallback()

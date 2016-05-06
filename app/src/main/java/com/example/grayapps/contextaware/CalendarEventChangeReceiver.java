@@ -25,7 +25,8 @@ import java.util.HashMap;
 public class CalendarEventChangeReceiver extends BroadcastReceiver
 {
 
-    private Cursor mCursor;
+    private Cursor mEventCursor;
+    private Cursor mAttendeeCursor;
     private Context mContext;
     private JSONObject mEventMapJsonObject;
     private ParseObject mParseWrapper;
@@ -52,10 +53,12 @@ public class CalendarEventChangeReceiver extends BroadcastReceiver
         String[] projection = new String[]{
                 CalendarContract.Events._ID,
                 CalendarContract.Events.DTSTART,
-                CalendarContract.Events.DTEND
+                CalendarContract.Events.DTEND,
+                CalendarContract.Events.EVENT_LOCATION,
+                CalendarContract.Events.TITLE
         };
         String query = CalendarContract.Events.ACCOUNT_NAME + " = ? AND " + CalendarContract.Events.DTSTART + ">" + System.currentTimeMillis();
-        mCursor = mContext.getContentResolver().query(uri, projection, query, new String[]{"ajgray123@gmail.com"}, CalendarContract.Events.DTSTART + " ASC");
+        mEventCursor = mContext.getContentResolver().query(uri, projection, query, new String[]{"ajgray123@gmail.com"}, CalendarContract.Events.DTSTART + " ASC");
         getEventsFromParse();
     }
 
@@ -108,14 +111,14 @@ public class CalendarEventChangeReceiver extends BroadcastReceiver
             if (mEventMapJsonObject != null)
             {
                 Log.d("Level1", "Reached");
-                if (mCursor != null)
+                if (mEventCursor != null)
                 {
                     Log.d("Level2", "Reached");
-                    while (mCursor.moveToNext())
+                    while (mEventCursor.moveToNext())
                     {
-                        String eventId = mCursor.getString(0);
-                        long start = mCursor.getLong(1);
-                        long stop = mCursor.getLong(2);
+                        String eventId = mEventCursor.getString(0);
+                        long start = mEventCursor.getLong(1);
+                        long stop = mEventCursor.getLong(2);
                         if (mEventMapJsonObject.has(eventId))
                         {
                             CalendarEventRecordingTrigger cEvent = null;
@@ -143,7 +146,29 @@ public class CalendarEventChangeReceiver extends BroadcastReceiver
                         {
                             try
                             {
-                                mEventMapJsonObject.put(eventId, converter.toJson(new CalendarEventRecordingTrigger(mContext, start, stop, eventId), CalendarEventRecordingTrigger.class));
+                                CalendarEventRecordingTrigger trigger = new CalendarEventRecordingTrigger(mContext, start, stop, eventId);
+                                trigger.setLocation(mEventCursor.getString(3));
+                                trigger.setTitle(mEventCursor.getString(4));
+                                Uri uri = CalendarContract.Attendees.CONTENT_URI;
+                                String[] projection = new String[]{
+                                        CalendarContract.Attendees.EVENT_ID,
+                                        CalendarContract.Attendees.ATTENDEE_NAME
+
+                                };
+                                String query = CalendarContract.Attendees.EVENT_ID + " = ?";
+                                mAttendeeCursor = mContext.getContentResolver().query(uri, projection, query, new String[]{String.valueOf(eventId)}, CalendarContract.Attendees.ATTENDEE_NAME + " ASC");
+                                String[] attendees = null;
+                                if(mAttendeeCursor.getCount() > 0)
+                                {
+                                    attendees = new String[4];
+                                    int i = 0;
+                                    while(mAttendeeCursor.moveToNext())
+                                    {
+                                        attendees[i] = mAttendeeCursor.getString(1);
+                                    }
+                                }
+                                trigger.addAttendees(attendees);
+                                mEventMapJsonObject.put(eventId, converter.toJson(trigger, CalendarEventRecordingTrigger.class));
                             } catch (JSONException e)
                             {
                                 e.printStackTrace();
@@ -195,7 +220,7 @@ public class CalendarEventChangeReceiver extends BroadcastReceiver
                     });
                 }
             }
-            mCursor.close();
+            mEventCursor.close();
         }
     }
 }

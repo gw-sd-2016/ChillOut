@@ -150,7 +150,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorNeutralBar));
             }
 
-            if(mStress == 2)
+            if(mStress >= 0.5)
             {
                 toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorStressDark)));
@@ -159,7 +159,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                // contentLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBackground));
                 detsCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.colorStressBar));
             }
-            else if(mStress == 1)
+            else if(mStress >= 0)
             {
                 toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorNoise))));
                 w.setStatusBarColor(Color.parseColor(getResources().getString(R.color.colorNoiseDark)));
@@ -216,7 +216,7 @@ public class EventDetailsActivity extends AppCompatActivity implements EventAtte
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_stat_group_2)
                         .setContentTitle("Upcoming Stressful Event")
-                        .setContentText("Job Performance Review")
+                        .setContentText("Study For Test")
                         .setColor(Color.parseColor(getResources().getString(R.color.colorStress)));
 
         builder.setContentIntent(resultPendingIntent);

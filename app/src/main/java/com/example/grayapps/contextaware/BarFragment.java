@@ -93,12 +93,12 @@ public class BarFragment extends Fragment
             Log.d("IntentExtra", "Stress is present");
             mPos = (int) getActivity().getIntent().getExtras().getDouble("stress", -1);
 
-            if (mPos == 2)//stressed
+            if (mPos >= 0.5)//stressed
             {
                 mValuesOne[0][0] = 8.0f;
                 mStressColor = "#db0c42";
                 mRealEvent = true;
-            } else if (mPos == 1)//relaxed
+            } else if (mPos >= 0)//relaxed
             {
                 mValuesOne[0][0] = 2.0f;
                 mStressColor = "#2c93d0";

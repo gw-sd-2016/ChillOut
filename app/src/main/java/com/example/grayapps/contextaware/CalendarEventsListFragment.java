@@ -128,6 +128,12 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         mSimpleDateFormat = new SimpleDateFormat("h:mma");
         mDayOfWeekFormat = new SimpleDateFormat("cccc");
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState)
+    {
         String from[] = new String[]{CalendarContract.Events.TITLE, CalendarContract.Events.EVENT_LOCATION, CalendarContract.Events.DTSTART, CalendarContract.Events.DTEND};
         int to[] = {R.id.eventTitle, R.id.eventLocation, R.id.eventStartTime, R.id.eventEndTime};
 
@@ -135,12 +141,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         mAdapter = new EventsAdapter(getActivity(), R.layout.calendarevent_list_item, null, from, to, getLayoutInflater(savedInstanceState));
         setListAdapter(mAdapter);
         setHasOptionsMenu(true);
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
         View view = inflater.inflate(R.layout.calendar_event_list, container, false);
 
         // Set the adapter
@@ -207,10 +208,10 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             mEventData[0] = -1;
             mEventData[1] = -1;
             mEventData[2] = -1;
-            int c = mAdapter.getEventColor(String.valueOf(id));
+            double c = mAdapter.getEventColor(String.valueOf(id));
             intent.putExtra("eventId", String.valueOf(id));
             intent.putExtra("position", position);
-            if (mEventData[0] > 0)
+            if (mEventData[0] >= 0)
             {
                 intent.putExtra("stress", mEventData[0]);
                 intent.putExtra("noise", mEventData[1]);
@@ -343,14 +344,14 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             View rowView = super.getView(position, convertView, parent);
             CardView card = (CardView) rowView.findViewById(R.id.cardView);
             FrameLayout buffer = (FrameLayout) rowView.findViewById(R.id.buffer);
-            int col = getEventColor(c.getString(0));
-            if (col > 0)
+            double col = getEventColor(c.getString(0));
+            if (col >= 0)
             {
-                if (col == 2)
+                if (col > 0.5)
                 {
                     buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorStress));
-                } else if (col == 1)
+                } else
                 {
                     buffer.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
                     card.setCardBackgroundColor(ContextCompat.getColor(getContext(), R.color.colorNoise));
@@ -382,7 +383,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
         @Override
         public void bindView(View rowView, Context context, Cursor cursor) {
 
-            int color = getEventColor(cursor.getString(0));
+            double color = getEventColor(cursor.getString(0));
             CardView card = (CardView) rowView.findViewById(R.id.cardView);
             CardView cardWrapper = (CardView) rowView.findViewById(R.id.backgroundCard);
             String title = cursor.getString(1);
@@ -458,13 +459,14 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
                                 FrameLayout.LayoutParams fb = (FrameLayout.LayoutParams) buffer.getLayoutParams();
                                 buffer.setVisibility(View.VISIBLE);
                                 fb.gravity = Gravity.BOTTOM;
-                                lp.setMargins(0, margin, 0, 0);
+                                lp.setMargins(0, margin - 1, 0, 6);
+                                divider.setVisibility(View.VISIBLE);
                             }
                             cursor.moveToPrevious();
                         }
                 }
 
-            } else
+            } else//for first item in list
             {
                 header.setVisibility(View.VISIBLE);
                 date.setText(dateString);
@@ -483,13 +485,13 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
                             // card.setRadius(0);
                             lp.setMargins(0, margin, 0, margin);
                             buffer.setVisibility(View.GONE);
-                            // divider.setVisibility(View.GONE);
+                             divider.setVisibility(View.GONE);
                         } else
                         {
                             FrameLayout.LayoutParams fb = (FrameLayout.LayoutParams) buffer.getLayoutParams();
                             buffer.setVisibility(View.VISIBLE);
                             fb.gravity = Gravity.BOTTOM;
-                            lp.setMargins(0, margin, 0, 0);
+                            lp.setMargins(0, margin - 1, 0, 6);
                         }
                         cursor.moveToPrevious();
                     }
@@ -517,7 +519,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             eventEndTime.setText(timeAsString);
         }
 
-        public int getEventColor(String id)
+        public double getEventColor(String id)
         {
 
             final String eventId = id;
@@ -539,7 +541,7 @@ public class CalendarEventsListFragment extends ListFragment implements AbsListV
             }
 
             if (mCurrentEvent == null)
-                return 0;
+                return -1;
             return mCurrentEvent.getStressLevel();
         }
 

@@ -23,7 +23,7 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text=" 74%"
+                android:text=" 77%"
                 android:gravity="center_horizontal"
                 android:textColor="@color/textPrimary"
                 android:textSize="58sp"
@@ -66,7 +66,7 @@
                 android:layout_alignParentLeft="true"
                 android:src="@drawable/ic_access_time_white_24dp"
                 android:alpha="0.85"
-                android:id="@+id/timeIcon" />
+                android:id="@+id/timeIcon"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -110,7 +110,7 @@
                 android:textSize="14sp"
                 android:paddingStart="20dp"
                 android:fontFamily="sans-serif-light"
-                android:text="Work"
+                android:text="Gelman Library"
                 android:layout_alignBottom="@+id/locationIcon"
                 android:layout_toEndOf="@+id/locationIcon" />
 
@@ -134,7 +134,7 @@
                 android:layout_toEndOf="@id/attendeesIcon"
                 android:layout_alignBottom="@id/attendeesIcon"
                 android:fontFamily="sans-serif-light"
-                android:text="Joan Lehman"/>
+                android:text="Ferris Bueller"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -145,7 +145,7 @@
                 android:layout_below="@id/person1"
                 android:layout_alignStart="@id/person1"
                 android:fontFamily="sans-serif-light"
-                android:text="Steve Bogdan"
+                android:text="Cameron Frye"
                 />
             <TextView
                 android:layout_width="wrap_content"
@@ -217,7 +217,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="84%"
+                    android:text="88%"
                     android:id="@+id/percent"
                     android:textColor="@color/textPrimary"
                     android:fontFamily="sans-serif-light"
@@ -228,7 +228,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" of events with "
+                    android:text=" of "
                     android:textColor="@color/textPrimary"
                     android:id="@+id/ofEvents"
                     android:fontFamily="sans-serif-light"
@@ -237,13 +237,32 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Joan Lehman "
+                    android:text="Study For Test"
                     android:textColor="@color/textPrimary"
                     android:id="@+id/factor"
                     android:layout_toRightOf="@id/ofEvents"
                     android:fontFamily="sans-serif-light"
                     android:textStyle="bold"
                     android:textSize="14sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" events with "
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/with"
+                        android:fontFamily="sans-serif-light"
+                        android:layout_toRightOf="@+id/factor"
+                        android:textSize="14sp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ferris Bueller"
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/person"
+                        android:layout_toRightOf="@id/with"
+                        android:fontFamily="sans-serif-light"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
                 </RelativeLayout>
             </TableRow>
 
@@ -258,7 +277,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="71%"
+                        android:text="74%"
                         android:id="@+id/percent2"
                         android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
@@ -271,28 +290,38 @@
                         android:layout_height="wrap_content"
                         android:text=" of "
                         android:textColor="@color/textPrimary"
-                        android:id="@+id/ofEvents2"
+                        android:id="@+id/of"
                         android:fontFamily="sans-serif-light"
                         android:layout_toRightOf="@+id/percent2"
-                        android:textSize="14sp"/>
+                        android:textSize="14sp" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Job Performance Review "
+                        android:text="Study For Test"
                         android:textColor="@color/textPrimary"
-                        android:id="@+id/factor2"
-                        android:layout_toRightOf="@id/ofEvents2"
+                        android:id="@+id/eventName"
+                        android:layout_toRightOf="@id/of"
                         android:fontFamily="sans-serif-light"
                         android:textStyle="bold"
                         android:textSize="14sp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="events"
-                        android:id="@+id/name2"
-                        android:layout_toRightOf="@id/factor2"
+                        android:text=" events at"
                         android:textColor="@color/textPrimary"
+                        android:id="@+id/ofEvents2"
                         android:fontFamily="sans-serif-light"
+                        android:layout_toRightOf="@+id/eventName"
+                        android:textSize="14sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" Gelman Library "
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/factor2"
+                        android:layout_toRightOf="@id/ofEvents2"
+                        android:fontFamily="sans-serif-light"
+                        android:textStyle="bold"
                         android:textSize="14sp"/>
                 </RelativeLayout>
             </TableRow>
@@ -307,7 +336,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="63%"
+                        android:text="70% "
                         android:id="@+id/percent3"
                         android:textColor="@color/textPrimary"
                         android:fontFamily="sans-serif-light"
@@ -318,7 +347,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" of events with "
+                        android:text="of events with both "
                         android:textColor="@color/textPrimary"
                         android:id="@+id/ofEvents3"
                         android:fontFamily="sans-serif-light"
@@ -327,10 +356,29 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Steve Bogdan "
+                        android:text="Ferris B. "
                         android:textColor="@color/textPrimary"
                         android:id="@+id/factor3"
                         android:layout_toRightOf="@id/ofEvents3"
+                        android:fontFamily="sans-serif-light"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="and "
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/and"
+                        android:fontFamily="sans-serif-light"
+                        android:layout_toRightOf="@+id/factor3"
+                        android:textSize="14sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cameron F."
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/factor5"
+                        android:layout_toRightOf="@id/and"
                         android:fontFamily="sans-serif-light"
                         android:textStyle="bold"
                         android:textSize="14sp"/>
@@ -359,7 +407,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=" of events at "
+                        android:text=" of "
                         android:textColor="@color/textPrimary"
                         android:id="@+id/ofEvents4"
                         android:fontFamily="sans-serif-light"
@@ -368,12 +416,21 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Work"
+                        android:text="Study For Test"
                         android:textColor="@color/textPrimary"
                         android:id="@+id/factor4"
                         android:layout_toRightOf="@id/ofEvents4"
                         android:fontFamily="sans-serif-light"
                         android:textStyle="bold"
+                        android:textSize="14sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" events"
+                        android:textColor="@color/textPrimary"
+                        android:id="@+id/events"
+                        android:fontFamily="sans-serif-light"
+                        android:layout_toRightOf="@+id/factor4"
                         android:textSize="14sp"/>
                 </RelativeLayout>
             </TableRow>

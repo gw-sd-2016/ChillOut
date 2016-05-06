@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         TextView title = (TextView) toolbar.findViewById(R.id.toolbar_title);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-        title.setText("Job Performance Review");
+        title.setText("Study For Test");
         Window w = this.getWindow();
         toolbar.setBackground(new ColorDrawable(Color.parseColor(getResources().getString(R.color.colorStress))));
 
